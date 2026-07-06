@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "9T1lgjJQ9r4=",
+  "success": true,
+  "projectFilePath": "/Users/galzada/TripPlanner/server/server.csproj",
+  "expectedPackageFiles": [
+    "/Users/galzada/.nuget/packages/microsoft.aspnetcore.openapi/10.0.9/microsoft.aspnetcore.openapi.10.0.9.nupkg.sha512",
+    "/Users/galzada/.nuget/packages/microsoft.openapi/2.0.0/microsoft.openapi.2.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
+      "projectPath": "/Users/galzada/TripPlanner/server/server.csproj",
+      "warningLevel": 1,
+      "filePath": "/Users/galzada/TripPlanner/server/server.csproj",
+      "libraryId": "Microsoft.OpenApi",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
+}
