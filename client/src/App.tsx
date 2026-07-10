@@ -1,88 +1,41 @@
-import { useEffect, useState } from 'react'
-import { addTrip, getTrips } from './services/tripServices';
+import { useEffect, useState } from "react";
+import { getTrips } from "./services/tripServices";
+import TripForm from "./components/TripForm";
+import type { Trip } from "./models/Trip";
 
-
-import './App.css'
-
-
-interface Trip {
-  id: number;
-  destination: string;
-  country: string;
-  days: number;
-}
-
-
+import "./App.css";
 
 function App() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [destination, setDestination] = useState("");
-  const [country, setCountry] = useState("");
-  const [days, setDays] = useState(0);
+    const [trips, setTrips] = useState<Trip[]>([]);
 
-  useEffect(() => {
-    async function loadTrips() {
-      const tripsData = await getTrips();
-      setTrips(tripsData);
-    }
-    loadTrips();
-  }, []);
+    useEffect(() => {
+        async function loadTrips() {
+            const tripsData = await getTrips();
+            setTrips(tripsData);
+        }
 
-  async function handleAddTrip() {
-    const newTrip = {
-      destination,
-      country,
-      days
-    };
+        loadTrips();
+    }, []);
 
-    const createdTrip = await addTrip(newTrip);
+    return (
+        <div>
+            <h1>Trip Planner</h1>
 
-    setTrips([...trips, createdTrip]);
+            <TripForm
+                onTripAdded={(trip) => {
+                    setTrips([...trips, trip]);
+                }}
+            />
 
-    setDestination("");
-    setCountry("");
-    setDays(0);
-  }
-
-  return (
-    <div>
-      <h1>Trip Planner</h1>
-      <div>
-        <input
-          type="text"
-          placeholder="Destination"
-          value={destination}
-          onChange={(e) => setDestination(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Country"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-        />
-
-        <input
-          type="number"
-          placeholder="Days"
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-        />
-      </div>
-
-      <button onClick={handleAddTrip}>
-        Add Trip
-      </button>
-
-      {trips.map(trip => (
-        <div key={trip.id}>
-          <h2>Destination: {trip.destination}</h2>
-          <p>Country: {trip.country}</p>
-          <p>Days: {trip.days}</p>
+            {trips.map((trip) => (
+                <div key={trip.id}>
+                    <h2>Destination: {trip.destination}</h2>
+                    <p>Country: {trip.country}</p>
+                    <p>Days: {trip.days}</p>
+                </div>
+            ))}
         </div>
-      ))}
-    </div>
-  );
+    );
 }
 
 export default App;
