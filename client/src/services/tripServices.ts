@@ -1,4 +1,5 @@
 import type { Trip } from "../models/Trip";
+import type { CreateTripRequest } from "../models/CreateTripRequest";
 
 export async function getTrips(): Promise<Trip[]> {
     const response = await fetch("http://localhost:5075/api/trips");
@@ -10,7 +11,7 @@ export async function getTrips(): Promise<Trip[]> {
     return response.json();
 }
 
-export async function addTrip(trip: Trip): Promise<Trip> {
+export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
     const response = await fetch("http://localhost:5075/api/trips", {
         method: "POST",
         headers: {

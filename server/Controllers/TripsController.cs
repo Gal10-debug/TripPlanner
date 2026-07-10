@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using server.DTOs;
 using server.Models;
 
 namespace server.Controllers;
@@ -33,9 +34,15 @@ public class TripsController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult AddTrip(Trip trip)
+    public IActionResult AddTrip(CreateTripRequest request)
     {
-        trip.Id = Trips.Max(t => t.Id) + 1;
+        var trip = new Trip
+        {
+            Id = Trips.Max(t => t.Id) + 1,
+            Destination = request.Destination,
+            Country = request.Country,
+            Days = request.Days
+        };
 
         Trips.Add(trip);
 

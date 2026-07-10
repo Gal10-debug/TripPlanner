@@ -30,7 +30,6 @@ function App() {
 
   async function handleAddTrip() {
     const newTrip = {
-      id: 0,
       destination,
       country,
       days
