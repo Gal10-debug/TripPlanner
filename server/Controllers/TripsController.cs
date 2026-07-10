@@ -38,7 +38,7 @@ public class TripsController : ControllerBase
     {
         var trip = new Trip
         {
-            Id = Trips.Max(t => t.Id) + 1,
+            Id = Trips.Count == 0 ? 1 : Trips.Max(t => t.Id) + 1,
             Destination = request.Destination,
             Country = request.Country,
             Days = request.Days
@@ -60,5 +60,21 @@ public class TripsController : ControllerBase
 
         Trips.Remove(trip);
         return NoContent();
+    }
+
+    [HttpPut("{id}")]
+    public IActionResult UpdateTrip(int id, UpdateTripRequest request)
+    {
+        var trip = Trips.FirstOrDefault(t => t.Id == id);
+        if (trip == null)
+        {
+            return NotFound();
+        }
+
+        trip.Destination = request.Destination;
+        trip.Country = request.Country;
+        trip.Days = request.Days;
+
+        return Ok(trip);
     }
 }

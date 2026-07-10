@@ -36,3 +36,22 @@ export async function deleteTrip(id: number): Promise<void> {
         throw new Error("Failed to delete trip");
     }
 }
+
+export async function updateTrip(
+    id: number,
+    trip: CreateTripRequest
+): Promise<Trip> {
+    const response = await fetch(`http://localhost:5075/api/trips/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(trip)
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to update trip");
+    }
+
+    return response.json();
+}
