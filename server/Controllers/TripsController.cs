@@ -1,4 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
+using server.Data;
 using server.DTOs;
 using server.Models;
 
@@ -6,66 +8,58 @@ namespace server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TripsController : ControllerBase
+public class TripsController(TripPlannerContext context) : ControllerBase
 {
-    private static readonly List<Trip> Trips = new()
-{
-    new Trip
-    {
-        Id = 1,
-        Destination = "Tokyo",
-        Country = "Japan",
-        Days = 10
-    },
-    new Trip
-    {
-        Id = 2,
-        Destination = "Honolulu",
-        Country = "USA",
-        Days = 7
-    }
-};
-
-
     [HttpGet]
-    public IActionResult GetTrips()
+    public async Task<ActionResult<IEnumerable<Trip>>> GetTrips()
     {
-        return Ok(Trips);
+        return Ok(await context.Trips.AsNoTracking().ToListAsync());
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Trip>> GetTrip(int id)
+    {
+        var trip = await context.Trips.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        return trip is null ? NotFound() : Ok(trip);
     }
 
     [HttpPost]
-    public IActionResult AddTrip(CreateTripRequest request)
+    public async Task<ActionResult<Trip>> AddTrip(CreateTripRequest request)
     {
         var trip = new Trip
         {
-            Id = Trips.Count == 0 ? 1 : Trips.Max(t => t.Id) + 1,
             Destination = request.Destination,
             Country = request.Country,
             Days = request.Days
         };
 
-        Trips.Add(trip);
+        context.Trips.Add(trip);
+        await context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetTrips), trip);
+        return CreatedAtAction(nameof(GetTrip), new { id = trip.Id }, trip);
     }
 
     [HttpDelete("{id}")]
-    public IActionResult DeleteTrip(int id)
+    public async Task<IActionResult> DeleteTrip(int id)
     {
-        var trip = Trips.FirstOrDefault(t => t.Id == id);
+        var trip = await context.Trips.FindAsync(id);
         if (trip == null)
         {
             return NotFound();
         }
 
-        Trips.Remove(trip);
+        context.Trips.Remove(trip);
+        await context.SaveChangesAsync();
+
         return NoContent();
     }
 
     [HttpPut("{id}")]
-    public IActionResult UpdateTrip(int id, UpdateTripRequest request)
+    public async Task<ActionResult<Trip>> UpdateTrip(int id, UpdateTripRequest request)
     {
-        var trip = Trips.FirstOrDefault(t => t.Id == id);
+        var trip = await context.Trips.FindAsync(id);
         if (trip == null)
         {
             return NotFound();
@@ -74,6 +68,8 @@ public class TripsController : ControllerBase
         trip.Destination = request.Destination;
         trip.Country = request.Country;
         trip.Days = request.Days;
+
+        await context.SaveChangesAsync();
 
         return Ok(trip);
     }

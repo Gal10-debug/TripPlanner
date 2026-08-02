@@ -1,6 +1,9 @@
 # .NET
 **/bin/
 **/obj/
+**/*.db
+**/*.db-shm
+**/*.db-wal
 
 # React
 **/node_modules/
