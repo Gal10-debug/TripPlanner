@@ -32,7 +32,8 @@ public class TripsController(TripPlannerContext context) : ControllerBase
         {
             Destination = request.Destination,
             Country = request.Country,
-            Days = request.Days
+            StartDate = request.StartDate,
+            EndDate = request.EndDate
         };
 
         context.Trips.Add(trip);
@@ -67,7 +68,8 @@ public class TripsController(TripPlannerContext context) : ControllerBase
 
         trip.Destination = request.Destination;
         trip.Country = request.Country;
-        trip.Days = request.Days;
+        trip.StartDate = request.StartDate;
+        trip.EndDate = request.EndDate;
 
         await context.SaveChangesAsync();
 

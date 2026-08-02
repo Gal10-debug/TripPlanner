@@ -11,17 +11,38 @@ function TripCard({ trip, onDelete, onUpdate }: TripCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [destination, setDestination] = useState(trip.destination);
     const [country, setCountry] = useState(trip.country);
-    const [days, setDays] = useState(trip.days);
+    const [startDate, setStartDate] = useState(trip.startDate);
+    const [endDate, setEndDate] = useState(trip.endDate);
+    const [error, setError] = useState("");
 
     async function handleUpdate() {
-        await onUpdate({ ...trip, destination, country, days });
+        if (!destination.trim() || !country.trim() || !startDate || !endDate) {
+            setError("Please complete every field.");
+            return;
+        }
+
+        if (endDate < startDate) {
+            setError("The end date cannot be before the start date.");
+            return;
+        }
+
+        await onUpdate({
+            ...trip,
+            destination: destination.trim(),
+            country: country.trim(),
+            startDate,
+            endDate
+        });
+        setError("");
         setIsEditing(false);
     }
 
     function cancelEditing() {
         setDestination(trip.destination);
         setCountry(trip.country);
-        setDays(trip.days);
+        setStartDate(trip.startDate);
+        setEndDate(trip.endDate);
+        setError("");
         setIsEditing(false);
     }
 
@@ -38,12 +59,24 @@ function TripCard({ trip, onDelete, onUpdate }: TripCardProps) {
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                 />
-                <input
-                    type="number"
-                    min="1"
-                    value={days}
-                    onChange={(e) => setDays(Number(e.target.value))}
-                />
+                <label>
+                    Start date
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                    />
+                </label>
+                <label>
+                    End date
+                    <input
+                        type="date"
+                        min={startDate}
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                    />
+                </label>
+                {error && <p role="alert">{error}</p>}
                 <button onClick={handleUpdate}>Save</button>
                 <button onClick={cancelEditing}>Cancel</button>
             </div>
@@ -54,6 +87,7 @@ function TripCard({ trip, onDelete, onUpdate }: TripCardProps) {
         <div>
             <h2>Destination: {trip.destination}</h2>
             <p>Country: {trip.country}</p>
+            <p>Dates: {trip.startDate} to {trip.endDate}</p>
             <p>Days: {trip.days}</p>
             <button onClick={() => onDelete(trip.id)}>
                 Delete Trip

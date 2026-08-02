@@ -26,7 +26,7 @@ app.UseCors();
 using (var scope = app.Services.CreateScope())
 {
     var database = scope.ServiceProvider.GetRequiredService<TripPlannerContext>();
-    database.Database.EnsureCreated();
+    database.Database.Migrate();
 }
 
 // Configure the HTTP request pipeline.

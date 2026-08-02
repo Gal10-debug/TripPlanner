@@ -29,7 +29,8 @@ function App() {
     const savedTrip = await updateTrip(updatedTrip.id, {
       destination: updatedTrip.destination,
       country: updatedTrip.country,
-      days: updatedTrip.days
+      startDate: updatedTrip.startDate,
+      endDate: updatedTrip.endDate
     });
 
     setTrips(currentTrips =>

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace server.Models;
 
 public class Trip
@@ -8,5 +10,10 @@ public class Trip
 
     public string Country { get; set; } = string.Empty;
 
-    public int Days { get; set; }
+    public DateOnly StartDate { get; set; }
+
+    public DateOnly EndDate { get; set; }
+
+    [NotMapped]
+    public int Days => EndDate.DayNumber - StartDate.DayNumber + 1;
 }
