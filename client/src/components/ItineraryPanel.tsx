@@ -6,11 +6,12 @@ interface ItineraryPanelProps {
     tripId: number;
     startDate: string;
     endDate: string;
+    canEdit: boolean;
 }
 
 const emptyItem = (date: string): ItineraryItemRequest => ({ title: "", date, time: "09:00", location: "", note: "" });
 
-function ItineraryPanel({ tripId, startDate, endDate }: ItineraryPanelProps) {
+function ItineraryPanel({ tripId, startDate, endDate, canEdit }: ItineraryPanelProps) {
     const [items, setItems] = useState<ItineraryItem[]>([]);
     const [draft, setDraft] = useState<ItineraryItemRequest>(() => emptyItem(startDate));
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -84,7 +85,7 @@ function ItineraryPanel({ tripId, startDate, endDate }: ItineraryPanelProps) {
     return <section className="itinerary-panel">
         <div className="itinerary-heading">
             <div><span className="eyebrow">Daily itinerary</span><h3>Plan each day</h3></div>
-            {!isAdding && <button className="text-action" onClick={() => setIsAdding(true)}>+ Add activity</button>}
+            {!isAdding && canEdit && <button className="text-action" onClick={() => setIsAdding(true)}>+ Add activity</button>}
         </div>
 
         {isAdding && <form className="activity-form" onSubmit={submitItem}>
@@ -100,7 +101,7 @@ function ItineraryPanel({ tripId, startDate, endDate }: ItineraryPanelProps) {
                 <div className="day-label"><span>Day {daysBetween(startDate, date) + 1}</span><strong>{formatDay(date)}</strong></div>
                 <div className="day-timeline">{dayItems.map(item => <article className="activity-item" key={item.id}>
                     <time>{formatTime(item.time)}</time><span className="timeline-dot" aria-hidden="true" />
-                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <span>⌖ {item.location}</span>}{item.note && <p>{item.note}</p>}<div className="activity-actions"><button onClick={() => editItem(item)}>Edit</button><button onClick={() => removeItem(item.id)}>Delete</button></div></div>
+                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <span>⌖ {item.location}</span>}{item.note && <p>{item.note}</p>}{canEdit && <div className="activity-actions"><button onClick={() => editItem(item)}>Edit</button><button onClick={() => removeItem(item.id)}>Delete</button></div>}</div>
                 </article>)}</div>
                 {dayIndex < groupedItems.length - 1 && <div className="day-divider" />}
             </section>)}</div>}

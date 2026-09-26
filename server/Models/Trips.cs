@@ -34,4 +34,7 @@ public class Trip
 
     [NotMapped]
     public int Days => EndDate.DayNumber - StartDate.DayNumber + 1;
+
+    [NotMapped]
+    public string AccessRole { get; set; } = TripRoles.Owner;
 }

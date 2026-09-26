@@ -5,27 +5,30 @@ using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.DTOs;
 using server.Models;
+using server.Services;
 
 namespace server.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("api/trips/{tripId:int}/budget")]
-public class BudgetController(TripPlannerContext context) : ControllerBase
+public class BudgetController(TripPlannerContext context, TripAccessService access) : ControllerBase
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     [HttpGet]
     public async Task<ActionResult> GetBudget(int tripId)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanViewAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         return trip is null ? NotFound() : Ok(await BuildOverview(trip));
     }
 
     [HttpPut]
     public async Task<ActionResult> UpdateBudget(int tripId, UpdateBudgetRequest request)
     {
-        var trip = await context.Trips.FirstOrDefaultAsync(trip => trip.Id == tripId && trip.UserId == UserId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await context.Trips.FirstOrDefaultAsync(trip => trip.Id == tripId);
         if (trip is null) return NotFound();
 
         trip.BudgetAmount = request.Amount;
@@ -37,7 +40,8 @@ public class BudgetController(TripPlannerContext context) : ControllerBase
     [HttpPost("expenses")]
     public async Task<ActionResult> AddExpense(int tripId, ExpenseRequest request)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         if (trip is null) return NotFound();
 
         context.Expenses.Add(new Expense
@@ -55,7 +59,8 @@ public class BudgetController(TripPlannerContext context) : ControllerBase
     [HttpPut("expenses/{expenseId:int}")]
     public async Task<ActionResult> UpdateExpense(int tripId, int expenseId, ExpenseRequest request)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         if (trip is null) return NotFound();
         var expense = await context.Expenses.FirstOrDefaultAsync(expense => expense.Id == expenseId && expense.TripId == tripId);
         if (expense is null) return NotFound();
@@ -71,7 +76,8 @@ public class BudgetController(TripPlannerContext context) : ControllerBase
     [HttpDelete("expenses/{expenseId:int}")]
     public async Task<ActionResult> DeleteExpense(int tripId, int expenseId)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         if (trip is null) return NotFound();
         var expense = await context.Expenses.FirstOrDefaultAsync(expense => expense.Id == expenseId && expense.TripId == tripId);
         if (expense is null) return NotFound();
@@ -81,8 +87,8 @@ public class BudgetController(TripPlannerContext context) : ControllerBase
         return Ok(await BuildOverview(trip));
     }
 
-    private Task<Trip?> FindOwnedTrip(int tripId) => context.Trips.AsNoTracking()
-        .FirstOrDefaultAsync(trip => trip.Id == tripId && trip.UserId == UserId);
+    private Task<Trip?> FindTrip(int tripId) => context.Trips.AsNoTracking()
+        .FirstOrDefaultAsync(trip => trip.Id == tripId);
 
     private async Task<object> BuildOverview(Trip trip)
     {

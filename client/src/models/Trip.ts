@@ -10,6 +10,7 @@ export interface Trip {
     accommodationAddress: string;
     bookingReference: string;
     usefulLinks: TripLink[];
+    accessRole: "Owner" | "Editor" | "Viewer";
 }
 
 export interface TripLink {

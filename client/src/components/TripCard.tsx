@@ -4,6 +4,7 @@ import ItineraryPanel from "./ItineraryPanel";
 import PackingPanel from "./PackingPanel";
 import BudgetPanel from "./BudgetPanel";
 import type { TripStatus } from "../utils/tripStatus";
+import SharingPanel from "./SharingPanel";
 
 interface TripCardProps {
     trip: Trip;
@@ -24,6 +25,8 @@ function TripCard({ trip, status, onDelete, onUpdate, onUpdateDetails }: TripCar
     const [details, setDetails] = useState<TripDetailsRequest>(() => detailsFromTrip(trip));
     const [error, setError] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const canEdit = trip.accessRole !== "Viewer";
+    const isOwner = trip.accessRole === "Owner";
 
     async function handleUpdate() {
         if (!destination.trim() || !country.trim() || !startDate || !endDate) {
@@ -90,13 +93,13 @@ function TripCard({ trip, status, onDelete, onUpdate, onUpdateDetails }: TripCar
     return (
         <article className={`trip-card ${isOpen ? "trip-card--open" : ""}`}>
             <button className="trip-card__summary" onClick={() => setIsOpen(open => !open)} aria-expanded={isOpen}>
-                <span className="trip-card__place"><small>{trip.country}</small><strong>{trip.destination}</strong><span className={`trip-status trip-status--${status}`}>{status}</span></span>
+                <span className="trip-card__place"><small>{trip.country}</small><strong>{trip.destination}</strong><span className="trip-card__badges"><span className={`trip-status trip-status--${status}`}>{status}</span>{!isOwner && <span className="access-badge">Shared · {trip.accessRole}</span>}</span></span>
                 <span className="trip-card__dates">{formatDate(trip.startDate)} — {formatDate(trip.endDate)}<small>{trip.days} days</small></span>
                 <span className="expand-icon" aria-hidden="true">{isOpen ? "−" : "+"}</span>
             </button>
 
             {isOpen && <div className="trip-details">
-                <div className="trip-details__heading"><div><span className="eyebrow">Trip details</span><h3>Everything in one place</h3></div>{!isEditingDetails && <button className="text-action" onClick={() => { setDetails(detailsFromTrip(trip)); setIsEditingDetails(true); }}>Edit details</button>}</div>
+                <div className="trip-details__heading"><div><span className="eyebrow">Trip details</span><h3>Everything in one place</h3></div>{!isEditingDetails && canEdit && <button className="text-action" onClick={() => { setDetails(detailsFromTrip(trip)); setIsEditingDetails(true); }}>Edit details</button>}</div>
 
                 {isEditingDetails ? <div className="details-form">
                     <label>Notes<textarea value={details.notes} onChange={e => setDetails({ ...details, notes: e.target.value })} placeholder="Ideas, reminders, and plans…" maxLength={4000} /></label>
@@ -109,10 +112,11 @@ function TripCard({ trip, status, onDelete, onUpdate, onUpdateDetails }: TripCar
                     <div className="card-actions"><button onClick={saveDetails} disabled={isSaving}>{isSaving ? "Saving…" : "Save details"}</button><button className="secondary-action" onClick={() => { setIsEditingDetails(false); setError(""); }}>Cancel</button></div>
                 </div> : <DetailsView trip={trip} />}
 
-                {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} />}
-                {!isEditingDetails && <PackingPanel tripId={trip.id} />}
-                {!isEditingDetails && <BudgetPanel tripId={trip.id} />}
-                {!isEditingDetails && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button><button className="text-action text-action--danger" onClick={() => onDelete(trip.id)}>Delete trip</button></div>}
+                {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} canEdit={canEdit} />}
+                {!isEditingDetails && <PackingPanel tripId={trip.id} canEdit={canEdit} />}
+                {!isEditingDetails && <BudgetPanel tripId={trip.id} canEdit={canEdit} />}
+                {!isEditingDetails && <SharingPanel tripId={trip.id} />}
+                {!isEditingDetails && canEdit && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button>{isOwner && <button className="text-action text-action--danger" onClick={() => onDelete(trip.id)}>Delete trip</button>}</div>}
             </div>}
         </article>
     );
