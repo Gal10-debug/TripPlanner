@@ -179,9 +179,55 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 .packing-item small { color: var(--muted); }
 .packing-item > button { padding: 3px 6px; color: #a54d3c; background: transparent; font-size: 18px; opacity: 0; }
 .packing-item:hover > button,.packing-item > button:focus { opacity: 1; }
+.budget-panel { margin-top: 30px; padding-top: 28px; border-top: 1px solid var(--line); }
+.budget-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.budget-heading .eyebrow { margin-bottom: 7px; }
+.budget-heading h3 { margin: 0; color: var(--ink); font: 600 22px 'Playfair Display',serif; }
+.budget-heading > div:last-child { display: flex; gap: 10px; }
+.budget-form,.expense-form { margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #f6f5ef; }
+.budget-form { display: grid; grid-template-columns: 1fr 130px; gap: 12px; }
+.expense-form { display: flex; flex-direction: column; gap: 12px; }
+.expense-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.budget-form label,.expense-form label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.budget-form input,.budget-form select,.expense-form input,.expense-form select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; outline: none; color: var(--ink); background: white; }
+.budget-form .card-actions { grid-column: 1 / -1; }
+.budget-status { margin: 24px 0 0; color: var(--muted); font-size: 13px; }
+.budget-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 22px; }
+.budget-summary > div { padding: 16px; border: 1px solid var(--line); border-radius: 11px; background: #f6f5ef; }
+.budget-summary small { display: block; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.budget-summary strong { display: block; margin-top: 6px; color: var(--ink); font-size: 18px; }
+.budget-summary .budget-balance { background: #edf7f1; }
+.budget-summary .budget-balance--over { background: #fff0ea; }
+.budget-balance--over strong { color: #a54d3c; }
+.budget-meter { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; margin-top: 14px; }
+.budget-meter > div { height: 7px; overflow: hidden; border-radius: 10px; background: #dfe6df; }
+.budget-meter > div span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
+.budget-meter--over > div span { background: #c85e45; }
+.budget-meter small { color: var(--muted); font-size: 11px; font-weight: 700; }
+.category-breakdown { display: grid; gap: 9px; margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 11px; }
+.category-breakdown > div { display: grid; grid-template-columns: 100px 1fr auto; align-items: center; gap: 10px; }
+.category-breakdown span,.category-breakdown strong { color: var(--muted); font-size: 11px; }
+.category-breakdown strong { color: var(--ink); }
+.category-breakdown > div > div { height: 5px; overflow: hidden; border-radius: 10px; background: #e7ebe7; }
+.category-breakdown i { display: block; height: 100%; border-radius: inherit; background: var(--orange); }
+.budget-empty { min-height: 130px; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; color: var(--muted); }
+.budget-empty > span { color: var(--orange); font-size: 28px; }
+.budget-empty p { margin: 0; }
+.expense-list { margin-top: 22px; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; }
+.expense-list article { display: grid; grid-template-columns: 34px 1fr auto 72px; align-items: center; gap: 11px; min-height: 62px; padding: 9px 13px; border-top: 1px solid var(--line); }
+.expense-list article:first-child { border-top: 0; }
+.expense-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: var(--green); background: #edf2ec; }
+.expense-list article > div:nth-child(2) { display: flex; flex-direction: column; min-width: 0; }
+.expense-list article strong { overflow: hidden; color: var(--ink); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.expense-list article small { color: var(--muted); font-size: 10px; }
+.expense-list article > b { color: var(--ink); font-size: 13px; }
+.expense-list article > div:last-child { display: flex; gap: 7px; opacity: 0; }
+.expense-list article:hover > div:last-child,.expense-list article > div:last-child:focus-within { opacity: 1; }
+.expense-list button { padding: 0; color: var(--green); background: transparent; font-size: 10px; font-weight: 700; }
+.expense-list button:last-child { color: #a54d3c; }
 .empty-state { min-height: 250px; display: grid; place-content: center; justify-items: center; text-align: center; color: var(--muted); }
 .empty-state > span { font-size: 42px; color: var(--orange); }
 .empty-state h3 { margin: 10px 0 6px; color: var(--ink); font: 600 24px 'Playfair Display',serif; }
 .empty-state p { margin: 0; }
 @media (max-width:880px) { .welcome-page { grid-template-columns: 1fr; } .welcome-hero { display: none; } .welcome-panel { min-height: 100svh; padding: 36px 24px 24px; } .mobile-brand { display: flex; } .auth-footer { padding-top: 34px; } .planner-layout { grid-template-columns: 1fr; } .trip-grid { grid-template-columns: 1fr; } }
-@media (max-width:560px) { .dashboard-header { padding: 0 18px; } .account-actions > span { display: none; } .dashboard-content { padding: 44px 18px 60px; } .dashboard-intro h1 { font-size: 48px; letter-spacing: -2px; } .planner-layout { gap: 36px; margin-top: 40px; } .trip-card__summary { grid-template-columns: 1fr 30px; gap: 12px; padding: 20px; } .trip-card__dates { grid-column: 1; grid-row: 2; text-align: left; } .expand-icon { grid-column: 2; grid-row: 1 / 3; } .trip-details { padding: 22px 20px; } .details-view,.details-form__row,.activity-form__row,.packing-form,.packing-groups { grid-template-columns: 1fr; } .detail-block--wide { grid-column: auto; } .link-row { grid-template-columns: 1fr 32px; } .link-row input:nth-child(2) { grid-column: 1; } .link-row .remove-link { grid-column: 2; grid-row: 1 / 3; } .itinerary-day { grid-template-columns: 1fr; gap: 12px; } .day-label { flex-direction: row; align-items: baseline; gap: 8px; } .day-divider { margin-top: 0; } .activity-actions,.packing-item > button { opacity: 1; } .packing-heading { align-items: flex-start; flex-direction: column; } .template-picker > div { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:560px) { .dashboard-header { padding: 0 18px; } .account-actions > span { display: none; } .dashboard-content { padding: 44px 18px 60px; } .dashboard-intro h1 { font-size: 48px; letter-spacing: -2px; } .planner-layout { gap: 36px; margin-top: 40px; } .trip-card__summary { grid-template-columns: 1fr 30px; gap: 12px; padding: 20px; } .trip-card__dates { grid-column: 1; grid-row: 2; text-align: left; } .expand-icon { grid-column: 2; grid-row: 1 / 3; } .trip-details { padding: 22px 20px; } .details-view,.details-form__row,.activity-form__row,.packing-form,.packing-groups,.expense-form__row,.budget-form { grid-template-columns: 1fr; } .detail-block--wide { grid-column: auto; } .link-row { grid-template-columns: 1fr 32px; } .link-row input:nth-child(2) { grid-column: 1; } .link-row .remove-link { grid-column: 2; grid-row: 1 / 3; } .itinerary-day { grid-template-columns: 1fr; gap: 12px; } .day-label { flex-direction: row; align-items: baseline; gap: 8px; } .day-divider { margin-top: 0; } .activity-actions,.packing-item > button,.expense-list article > div:last-child { opacity: 1; } .packing-heading,.budget-heading { align-items: flex-start; flex-direction: column; } .template-picker > div { grid-template-columns: repeat(2,1fr); } .budget-summary { grid-template-columns: 1fr 1fr; } .budget-summary > div:last-child { grid-column: 1 / -1; } .category-breakdown > div { grid-template-columns: 80px 1fr auto; } .expense-list article { grid-template-columns: 34px 1fr auto; } .expense-list article > div:last-child { grid-column: 2 / -1; } }

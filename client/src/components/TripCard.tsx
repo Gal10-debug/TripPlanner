@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
 import ItineraryPanel from "./ItineraryPanel";
 import PackingPanel from "./PackingPanel";
+import BudgetPanel from "./BudgetPanel";
 
 interface TripCardProps {
     trip: Trip;
@@ -108,6 +109,7 @@ function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) 
 
                 {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} />}
                 {!isEditingDetails && <PackingPanel tripId={trip.id} />}
+                {!isEditingDetails && <BudgetPanel tripId={trip.id} />}
                 {!isEditingDetails && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button><button className="text-action text-action--danger" onClick={() => onDelete(trip.id)}>Delete trip</button></div>}
             </div>}
         </article>

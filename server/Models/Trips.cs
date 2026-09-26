@@ -26,6 +26,10 @@ public class Trip
 
     public string BookingReference { get; set; } = string.Empty;
 
+    public decimal BudgetAmount { get; set; }
+
+    public string BudgetCurrency { get; set; } = "USD";
+
     public List<TripLink> UsefulLinks { get; set; } = [];
 
     [NotMapped]
