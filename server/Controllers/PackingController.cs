@@ -5,27 +5,28 @@ using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.DTOs;
 using server.Models;
+using server.Services;
 
 namespace server.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("api/trips/{tripId:int}/packing")]
-public class PackingController(TripPlannerContext context) : ControllerBase
+public class PackingController(TripPlannerContext context, TripAccessService access) : ControllerBase
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PackingItem>>> GetItems(int tripId)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanViewAsync(tripId, UserId)) return NotFound();
         return Ok(await OrderedItems(tripId).AsNoTracking().ToListAsync());
     }
 
     [HttpPost]
     public async Task<ActionResult<PackingItem>> AddItem(int tripId, PackingItemRequest request)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
 
         var item = NewItem(tripId, request.Name, request.Category, request.Quantity);
         item.IsPacked = request.IsPacked;
@@ -37,7 +38,7 @@ public class PackingController(TripPlannerContext context) : ControllerBase
     [HttpPut("{itemId:int}")]
     public async Task<ActionResult<PackingItem>> UpdateItem(int tripId, int itemId, PackingItemRequest request)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
         var item = await context.PackingItems.FirstOrDefaultAsync(item => item.Id == itemId && item.TripId == tripId);
         if (item is null) return NotFound();
 
@@ -52,7 +53,7 @@ public class PackingController(TripPlannerContext context) : ControllerBase
     [HttpDelete("{itemId:int}")]
     public async Task<IActionResult> DeleteItem(int tripId, int itemId)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
         var item = await context.PackingItems.FirstOrDefaultAsync(item => item.Id == itemId && item.TripId == tripId);
         if (item is null) return NotFound();
 
@@ -64,7 +65,7 @@ public class PackingController(TripPlannerContext context) : ControllerBase
     [HttpPost("templates/{templateKey}")]
     public async Task<ActionResult<IEnumerable<PackingItem>>> ApplyTemplate(int tripId, string templateKey)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
         if (!Templates.TryGetValue(templateKey, out var template))
         {
             return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
@@ -83,8 +84,6 @@ public class PackingController(TripPlannerContext context) : ControllerBase
         await context.SaveChangesAsync();
         return Ok(await OrderedItems(tripId).AsNoTracking().ToListAsync());
     }
-
-    private Task<bool> OwnsTrip(int tripId) => context.Trips.AnyAsync(trip => trip.Id == tripId && trip.UserId == UserId);
 
     private IOrderedQueryable<PackingItem> OrderedItems(int tripId) => context.PackingItems
         .Where(item => item.TripId == tripId)

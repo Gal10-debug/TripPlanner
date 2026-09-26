@@ -86,6 +86,7 @@ function normalizeTrip(trip: Trip): Trip {
         accommodationName: trip.accommodationName ?? "",
         accommodationAddress: trip.accommodationAddress ?? "",
         bookingReference: trip.bookingReference ?? "",
-        usefulLinks: trip.usefulLinks ?? []
+        usefulLinks: trip.usefulLinks ?? [],
+        accessRole: trip.accessRole ?? "Owner"
     };
 }

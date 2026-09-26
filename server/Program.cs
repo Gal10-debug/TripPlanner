@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
+using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<TripPlannerContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("TripPlanner")));
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<TripAccessService>();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
     {
         options.User.RequireUniqueEmail = true;

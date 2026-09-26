@@ -11,7 +11,7 @@ const templates = [
 
 const emptyItem: PackingItemRequest = { name: "", category: "Essentials", quantity: 1, isPacked: false };
 
-function PackingPanel({ tripId }: { tripId: number }) {
+function PackingPanel({ tripId, canEdit }: { tripId: number; canEdit: boolean }) {
     const [items, setItems] = useState<PackingItem[]>([]);
     const [draft, setDraft] = useState<PackingItemRequest>(emptyItem);
     const [showForm, setShowForm] = useState(false);
@@ -96,7 +96,7 @@ function PackingPanel({ tripId }: { tripId: number }) {
     return <section className="packing-panel">
         <div className="packing-heading">
             <div><span className="eyebrow">Packing checklist</span><h3>Pack with confidence</h3></div>
-            <div className="packing-heading__actions"><button className="text-action" onClick={() => setShowTemplates(value => !value)}>Use template</button><button className="text-action" onClick={() => setShowForm(value => !value)}>+ Add item</button></div>
+            {canEdit && <div className="packing-heading__actions"><button className="text-action" onClick={() => setShowTemplates(value => !value)}>Use template</button><button className="text-action" onClick={() => setShowForm(value => !value)}>+ Add item</button></div>}
         </div>
 
         {items.length > 0 && <div className="packing-progress"><div><span>{packedCount} of {items.length} packed</span><strong>{progress}%</strong></div><div className="progress-track"><span style={{ width: `${progress}%` }} /></div></div>}
@@ -107,7 +107,7 @@ function PackingPanel({ tripId }: { tripId: number }) {
 
         {error && <p className="alert" role="alert">{error}</p>}
         {isLoading ? <p className="packing-status">Loading your checklist…</p> : items.length === 0 && !showForm && !showTemplates ? <div className="packing-empty"><span>✓</span><p>Your packing list is empty. Add an item or start from a template.</p></div> :
-            <div className="packing-groups">{groups.map(([category, categoryItems]) => <section className="packing-group" key={category}><h4>{category}<span>{categoryItems.filter(item => item.isPacked).length}/{categoryItems.length}</span></h4><div>{categoryItems.map(item => <article className={item.isPacked ? "packing-item packing-item--done" : "packing-item"} key={item.id}><label><input type="checkbox" checked={item.isPacked} disabled={busyId === item.id} onChange={() => toggleItem(item)} /><span className="custom-check" aria-hidden="true">✓</span><span>{item.name}</span>{item.quantity > 1 && <small>×{item.quantity}</small>}</label><button aria-label={`Delete ${item.name}`} disabled={busyId === item.id} onClick={() => removeItem(item.id)}>×</button></article>)}</div></section>)}</div>}
+            <div className="packing-groups">{groups.map(([category, categoryItems]) => <section className="packing-group" key={category}><h4>{category}<span>{categoryItems.filter(item => item.isPacked).length}/{categoryItems.length}</span></h4><div>{categoryItems.map(item => <article className={item.isPacked ? "packing-item packing-item--done" : "packing-item"} key={item.id}><label><input type="checkbox" checked={item.isPacked} disabled={!canEdit || busyId === item.id} onChange={() => toggleItem(item)} /><span className="custom-check" aria-hidden="true">✓</span><span>{item.name}</span>{item.quantity > 1 && <small>×{item.quantity}</small>}</label>{canEdit && <button aria-label={`Delete ${item.name}`} disabled={busyId === item.id} onClick={() => removeItem(item.id)}>×</button>}</article>)}</div></section>)}</div>}
     </section>;
 }
 

@@ -5,20 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.DTOs;
 using server.Models;
+using server.Services;
 
 namespace server.Controllers;
 
 [ApiController]
 [Authorize]
 [Route("api/trips/{tripId:int}/itinerary")]
-public class ItineraryController(TripPlannerContext context) : ControllerBase
+public class ItineraryController(TripPlannerContext context, TripAccessService access) : ControllerBase
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ItineraryItem>>> GetItems(int tripId)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanViewAsync(tripId, UserId)) return NotFound();
 
         return Ok(await context.ItineraryItems.AsNoTracking()
             .Where(item => item.TripId == tripId)
@@ -30,7 +31,8 @@ public class ItineraryController(TripPlannerContext context) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ItineraryItem>> AddItem(int tripId, ItineraryItemRequest request)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         if (trip is null) return NotFound();
         if (!IsWithinTrip(request.Date, trip)) return InvalidDate(trip);
 
@@ -52,7 +54,8 @@ public class ItineraryController(TripPlannerContext context) : ControllerBase
     [HttpPut("{itemId:int}")]
     public async Task<ActionResult<ItineraryItem>> UpdateItem(int tripId, int itemId, ItineraryItemRequest request)
     {
-        var trip = await FindOwnedTrip(tripId);
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
+        var trip = await FindTrip(tripId);
         if (trip is null) return NotFound();
         if (!IsWithinTrip(request.Date, trip)) return InvalidDate(trip);
 
@@ -73,7 +76,7 @@ public class ItineraryController(TripPlannerContext context) : ControllerBase
     [HttpDelete("{itemId:int}")]
     public async Task<IActionResult> DeleteItem(int tripId, int itemId)
     {
-        if (!await OwnsTrip(tripId)) return NotFound();
+        if (!await access.CanEditAsync(tripId, UserId)) return NotFound();
 
         var item = await context.ItineraryItems
             .FirstOrDefaultAsync(item => item.Id == itemId && item.TripId == tripId);
@@ -84,12 +87,9 @@ public class ItineraryController(TripPlannerContext context) : ControllerBase
         return NoContent();
     }
 
-    private Task<Trip?> FindOwnedTrip(int tripId) => context.Trips
+    private Task<Trip?> FindTrip(int tripId) => context.Trips
         .AsNoTracking()
-        .FirstOrDefaultAsync(trip => trip.Id == tripId && trip.UserId == UserId);
-
-    private Task<bool> OwnsTrip(int tripId) => context.Trips
-        .AnyAsync(trip => trip.Id == tripId && trip.UserId == UserId);
+        .FirstOrDefaultAsync(trip => trip.Id == tripId);
 
     private static bool IsWithinTrip(DateOnly date, Trip trip) =>
         date >= trip.StartDate && date <= trip.EndDate;

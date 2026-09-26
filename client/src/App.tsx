@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
 import TripForm from "./components/TripForm";
 import type { Trip, TripDetailsRequest } from "./models/Trip";
@@ -7,6 +7,7 @@ import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
 import { getTripStatus, sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
+import InvitationsPanel from "./components/InvitationsPanel";
 
 
 import "./App.css";
@@ -24,6 +25,14 @@ function App() {
     completed: sortTripsByStatus(trips, "completed")
   }), [trips]);
   const visibleTrips = tripsByStatus[tripFilter];
+
+  const refreshTrips = useCallback(async () => {
+    try {
+      setTrips(await getTrips());
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Failed to load trips.");
+    }
+  }, []);
 
   useEffect(() => {
     async function checkSession() {
@@ -46,9 +55,7 @@ function App() {
 
     getTrips()
       .then(setTrips)
-      .catch(loadError => {
-        setError(loadError instanceof Error ? loadError.message : "Failed to load trips.");
-      });
+      .catch(loadError => setError(loadError instanceof Error ? loadError.message : "Failed to load trips."));
   }, [user]);
 
   async function handleDeleteTrip(id: number) {
@@ -122,6 +129,7 @@ function App() {
       <section className="dashboard-content">
         <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>Where to next?</h1><p>Turn the places on your mind into plans on your calendar.</p></div>
         {error && <p className="alert" role="alert">{error}</p>}
+        <InvitationsPanel onAccepted={refreshTrips} />
         <div className="planner-layout">
           <aside className="trip-form-card"><TripForm onTripAdded={(trip) => setTrips(currentTrips => [...currentTrips, trip])} /></aside>
           <section className="trips-section">

@@ -13,6 +13,8 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     public DbSet<ItineraryItem> ItineraryItems => Set<ItineraryItem>();
     public DbSet<PackingItem> PackingItems => Set<PackingItem>();
     public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<TripMember> TripMembers => Set<TripMember>();
+    public DbSet<TripInvitation> TripInvitations => Set<TripInvitation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -47,5 +49,26 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
             .WithMany()
             .HasForeignKey(expense => expense.TripId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TripMember>().HasKey(member => new { member.TripId, member.UserId });
+        modelBuilder.Entity<TripMember>()
+            .HasOne<Trip>()
+            .WithMany()
+            .HasForeignKey(member => member.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<TripMember>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(member => member.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TripInvitation>()
+            .HasOne<Trip>()
+            .WithMany()
+            .HasForeignKey(invitation => invitation.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<TripInvitation>()
+            .HasIndex(invitation => new { invitation.TripId, invitation.NormalizedEmail })
+            .IsUnique();
     }
 }

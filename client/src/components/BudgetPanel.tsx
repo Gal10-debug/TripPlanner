@@ -7,7 +7,7 @@ const currencies = ["USD", "EUR", "GBP", "ILS", "JPY", "CAD", "AUD"];
 const emptyOverview: BudgetOverview = { budgetAmount: 0, currency: "USD", totalSpent: 0, remaining: 0, percentUsed: 0, expenses: [] };
 const newExpense = (): ExpenseRequest => ({ description: "", amount: 0, category: "Food", date: new Date().toISOString().slice(0, 10) });
 
-function BudgetPanel({ tripId }: { tripId: number }) {
+function BudgetPanel({ tripId, canEdit }: { tripId: number; canEdit: boolean }) {
     const [overview, setOverview] = useState<BudgetOverview>(emptyOverview);
     const [budgetAmount, setBudgetAmount] = useState("");
     const [currency, setCurrency] = useState("USD");
@@ -83,7 +83,7 @@ function BudgetPanel({ tripId }: { tripId: number }) {
     const isOverBudget = overview.budgetAmount > 0 && overview.remaining < 0;
 
     return <section className="budget-panel">
-        <div className="budget-heading"><div><span className="eyebrow">Budget & expenses</span><h3>Know where it goes</h3></div><div><button className="text-action" onClick={() => setShowBudgetForm(value => !value)}>{overview.budgetAmount ? "Edit budget" : "Set budget"}</button><button className="text-action" onClick={() => { closeExpenseForm(); setShowExpenseForm(true); }}>+ Add expense</button></div></div>
+        <div className="budget-heading"><div><span className="eyebrow">Budget & expenses</span><h3>Know where it goes</h3></div>{canEdit && <div><button className="text-action" onClick={() => setShowBudgetForm(value => !value)}>{overview.budgetAmount ? "Edit budget" : "Set budget"}</button><button className="text-action" onClick={() => { closeExpenseForm(); setShowExpenseForm(true); }}>+ Add expense</button></div>}</div>
 
         {showBudgetForm && <form className="budget-form" onSubmit={submitBudget}><label>Trip budget<input type="number" min="0" step="0.01" value={budgetAmount} onChange={event => setBudgetAmount(event.target.value)} placeholder="0.00" required /></label><label>Currency<select value={currency} onChange={event => setCurrency(event.target.value)}>{currencies.map(code => <option key={code}>{code}</option>)}</select></label><div className="card-actions"><button type="submit" disabled={isSaving}>Save budget</button><button type="button" className="secondary-action" onClick={() => setShowBudgetForm(false)}>Cancel</button></div></form>}
 
@@ -94,7 +94,7 @@ function BudgetPanel({ tripId }: { tripId: number }) {
             <div className="budget-summary"><div><small>Spent</small><strong>{money(overview.totalSpent)}</strong></div><div><small>Budget</small><strong>{overview.budgetAmount ? money(overview.budgetAmount) : "Not set"}</strong></div><div className={isOverBudget ? "budget-balance budget-balance--over" : "budget-balance"}><small>{isOverBudget ? "Over budget" : "Remaining"}</small><strong>{money(Math.abs(overview.remaining))}</strong></div></div>
             {overview.budgetAmount > 0 && <div className={isOverBudget ? "budget-meter budget-meter--over" : "budget-meter"}><div><span style={{ width: `${Math.min(overview.percentUsed, 100)}%` }} /></div><small>{overview.percentUsed}% used</small></div>}
             {categoryTotals.length > 0 && <div className="category-breakdown">{categoryTotals.map(([category, total]) => <div key={category}><span>{category}</span><div><i style={{ width: `${overview.totalSpent ? total / overview.totalSpent * 100 : 0}%` }} /></div><strong>{money(total)}</strong></div>)}</div>}
-            {overview.expenses.length === 0 ? <div className="budget-empty"><span>¤</span><p>No expenses yet. Add your first cost to start tracking.</p></div> : <div className="expense-list">{overview.expenses.map(expense => <article key={expense.id}><span className="expense-icon">{categoryIcon(expense.category)}</span><div><strong>{expense.description}</strong><small>{expense.category} · {formatDate(expense.date)}</small></div><b>{money(expense.amount)}</b><div><button onClick={() => editExpense(expense)}>Edit</button><button disabled={isSaving} onClick={() => removeExpense(expense.id)}>Delete</button></div></article>)}</div>}
+            {overview.expenses.length === 0 ? <div className="budget-empty"><span>¤</span><p>No expenses yet. Add your first cost to start tracking.</p></div> : <div className="expense-list">{overview.expenses.map(expense => <article key={expense.id}><span className="expense-icon">{categoryIcon(expense.category)}</span><div><strong>{expense.description}</strong><small>{expense.category} · {formatDate(expense.date)}</small></div><b>{money(expense.amount)}</b>{canEdit && <div><button onClick={() => editExpense(expense)}>Edit</button><button disabled={isSaving} onClick={() => removeExpense(expense.id)}>Delete</button></div>}</article>)}</div>}
         </>}
     </section>;
 }
