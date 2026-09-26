@@ -15,6 +15,7 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     public DbSet<Expense> Expenses => Set<Expense>();
     public DbSet<TripMember> TripMembers => Set<TripMember>();
     public DbSet<TripInvitation> TripInvitations => Set<TripInvitation>();
+    public DbSet<TripReminder> TripReminders => Set<TripReminder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,5 +71,11 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
         modelBuilder.Entity<TripInvitation>()
             .HasIndex(invitation => new { invitation.TripId, invitation.NormalizedEmail })
             .IsUnique();
+
+        modelBuilder.Entity<TripReminder>()
+            .HasOne(reminder => reminder.Trip)
+            .WithMany()
+            .HasForeignKey(reminder => reminder.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

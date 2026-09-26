@@ -12,6 +12,8 @@ builder.Services.AddDbContext<TripPlannerContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("TripPlanner")));
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TripAccessService>();
+builder.Services.AddScoped<ReminderService>();
+builder.Services.AddHttpClient<WeatherService>(client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
     {
         options.User.RequireUniqueEmail = true;

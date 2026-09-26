@@ -5,6 +5,7 @@ import PackingPanel from "./PackingPanel";
 import BudgetPanel from "./BudgetPanel";
 import type { TripStatus } from "../utils/tripStatus";
 import SharingPanel from "./SharingPanel";
+import WeatherRemindersPanel from "./WeatherRemindersPanel";
 
 interface TripCardProps {
     trip: Trip;
@@ -115,6 +116,7 @@ function TripCard({ trip, status, onDelete, onUpdate, onUpdateDetails }: TripCar
                 {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} canEdit={canEdit} />}
                 {!isEditingDetails && <PackingPanel tripId={trip.id} canEdit={canEdit} />}
                 {!isEditingDetails && <BudgetPanel tripId={trip.id} canEdit={canEdit} />}
+                {!isEditingDetails && <WeatherRemindersPanel tripId={trip.id} startDate={trip.startDate} canEdit={canEdit} />}
                 {!isEditingDetails && <SharingPanel tripId={trip.id} />}
                 {!isEditingDetails && canEdit && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button>{isOwner && <button className="text-action text-action--danger" onClick={() => onDelete(trip.id)}>Delete trip</button>}</div>}
             </div>}
