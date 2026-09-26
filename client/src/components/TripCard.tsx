@@ -107,13 +107,14 @@ function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) 
 }
 
 function DetailsView({ trip }: { trip: Trip }) {
-    const hasDetails = trip.notes || trip.accommodationName || trip.accommodationAddress || trip.bookingReference || trip.usefulLinks.length > 0;
+    const usefulLinks = trip.usefulLinks ?? [];
+    const hasDetails = trip.notes || trip.accommodationName || trip.accommodationAddress || trip.bookingReference || usefulLinks.length > 0;
     if (!hasDetails) return <div className="details-empty"><span>⌁</span><p>No details yet. Add notes, a stay, booking references, or useful links.</p></div>;
     return <div className="details-view">
         {trip.notes && <section className="detail-block detail-block--wide"><small>Notes</small><p>{trip.notes}</p></section>}
         {(trip.accommodationName || trip.accommodationAddress) && <section className="detail-block"><small>Accommodation</small><strong>{trip.accommodationName}</strong><p>{trip.accommodationAddress}</p></section>}
         {trip.bookingReference && <section className="detail-block"><small>Booking reference</small><strong>{trip.bookingReference}</strong></section>}
-        {trip.usefulLinks.length > 0 && <section className="detail-block detail-block--wide"><small>Useful links</small><div className="saved-links">{trip.usefulLinks.map(link => <a key={link.id} href={link.url} target="_blank" rel="noreferrer">{link.label}<span>↗</span></a>)}</div></section>}
+        {usefulLinks.length > 0 && <section className="detail-block detail-block--wide"><small>Useful links</small><div className="saved-links">{usefulLinks.map(link => <a key={link.id} href={link.url} target="_blank" rel="noreferrer">{link.label}<span>↗</span></a>)}</div></section>}
     </div>;
 }
 

@@ -10,7 +10,8 @@ export async function getTrips(): Promise<Trip[]> {
         throw new Error("Failed to fetch trips");
     }
 
-    return response.json();
+    const trips = await response.json() as Trip[];
+    return trips.map(normalizeTrip);
 }
 
 export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
@@ -27,7 +28,7 @@ export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
         throw new Error("Failed to add trip");
     }
 
-    return response.json();
+    return normalizeTrip(await response.json() as Trip);
 }
 
 export async function deleteTrip(id: number): Promise<void> {
@@ -58,7 +59,7 @@ export async function updateTrip(
         throw new Error("Failed to update trip");
     }
 
-    return response.json();
+    return normalizeTrip(await response.json() as Trip);
 }
 
 export async function updateTripDetails(id: number, details: TripDetailsRequest): Promise<Trip> {
@@ -73,5 +74,16 @@ export async function updateTripDetails(id: number, details: TripDetailsRequest)
         throw new Error("Failed to update trip details");
     }
 
-    return response.json();
+    return normalizeTrip(await response.json() as Trip);
+}
+
+function normalizeTrip(trip: Trip): Trip {
+    return {
+        ...trip,
+        notes: trip.notes ?? "",
+        accommodationName: trip.accommodationName ?? "",
+        accommodationAddress: trip.accommodationAddress ?? "",
+        bookingReference: trip.bookingReference ?? "",
+        usefulLinks: trip.usefulLinks ?? []
+    };
 }
