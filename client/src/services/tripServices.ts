@@ -56,7 +56,9 @@ export async function updateTrip(
     });
 
     if (!response.ok) {
-        throw new Error("Failed to update trip");
+        const body = await response.json().catch(() => null) as { detail?: string; errors?: Record<string, string[]> } | null;
+        const validationError = body?.errors ? Object.values(body.errors).flat()[0] : undefined;
+        throw new Error(validationError ?? body?.detail ?? "Failed to update trip");
     }
 
     return normalizeTrip(await response.json() as Trip);

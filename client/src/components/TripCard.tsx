@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
+import ItineraryPanel from "./ItineraryPanel";
 
 interface TripCardProps {
     trip: Trip;
@@ -29,9 +30,13 @@ function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) 
             setError("The end date cannot be before the start date.");
             return;
         }
-        await onUpdate({ ...trip, destination: destination.trim(), country: country.trim(), startDate, endDate });
-        setError("");
-        setIsEditing(false);
+        try {
+            await onUpdate({ ...trip, destination: destination.trim(), country: country.trim(), startDate, endDate });
+            setError("");
+            setIsEditing(false);
+        } catch (updateError) {
+            setError(updateError instanceof Error ? updateError.message : "Failed to update trip.");
+        }
     }
 
     async function saveDetails() {
@@ -100,6 +105,7 @@ function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) 
                     <div className="card-actions"><button onClick={saveDetails} disabled={isSaving}>{isSaving ? "Saving…" : "Save details"}</button><button className="secondary-action" onClick={() => { setIsEditingDetails(false); setError(""); }}>Cancel</button></div>
                 </div> : <DetailsView trip={trip} />}
 
+                {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} />}
                 {!isEditingDetails && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button><button className="text-action text-action--danger" onClick={() => onDelete(trip.id)}>Delete trip</button></div>}
             </div>}
         </article>

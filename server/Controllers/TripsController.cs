@@ -79,6 +79,16 @@ public class TripsController(TripPlannerContext context) : ControllerBase
             return NotFound();
         }
 
+        var hasActivitiesOutsideNewDates = await context.ItineraryItems.AnyAsync(item =>
+            item.TripId == id && (item.Date < request.StartDate || item.Date > request.EndDate));
+        if (hasActivitiesOutsideNewDates)
+        {
+            return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["dates"] = ["Move or delete itinerary activities outside the new dates before shortening this trip."]
+            }));
+        }
+
         trip.Destination = request.Destination;
         trip.Country = request.Country;
         trip.StartDate = request.StartDate;
