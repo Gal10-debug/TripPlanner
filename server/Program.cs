@@ -67,4 +67,52 @@ app.MapGet("/api/auth/me", (HttpContext context) =>
     Results.Ok(new { email = context.User.Identity?.Name }))
     .RequireAuthorization();
 
+app.MapPost("/api/auth/forgot-password", async (
+    ForgotPasswordRequest request,
+    UserManager<IdentityUser> userManager,
+    IHostEnvironment environment) =>
+{
+    const string message = "If an account exists for that email, password reset instructions have been created.";
+    var user = await userManager.FindByEmailAsync(request.Email);
+
+    if (user is null)
+    {
+        return Results.Ok(new { message, resetToken = (string?)null });
+    }
+
+    var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+    // Until an email provider is configured, expose the token only when running locally.
+    return Results.Ok(new
+    {
+        message,
+        resetToken = environment.IsDevelopment() ? token : null
+    });
+});
+
+app.MapPost("/api/auth/reset-password", async (
+    ResetPasswordRequest request,
+    UserManager<IdentityUser> userManager) =>
+{
+    var user = await userManager.FindByEmailAsync(request.Email);
+    if (user is null)
+    {
+        return Results.BadRequest(new { detail = "The reset code is invalid or has expired." });
+    }
+
+    var result = await userManager.ResetPasswordAsync(user, request.ResetToken, request.NewPassword);
+    if (!result.Succeeded)
+    {
+        var errors = result.Errors
+            .GroupBy(error => error.Code)
+            .ToDictionary(group => group.Key, group => group.Select(error => error.Description).ToArray());
+        return Results.ValidationProblem(errors);
+    }
+
+    return Results.NoContent();
+});
+
 app.Run();
+
+record ForgotPasswordRequest(string Email);
+record ResetPasswordRequest(string Email, string ResetToken, string NewPassword);

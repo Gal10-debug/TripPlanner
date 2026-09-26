@@ -49,6 +49,33 @@ export async function login(email: string, password: string): Promise<void> {
     }
 }
 
+export async function requestPasswordReset(email: string): Promise<string | null> {
+    const response = await request(`${authUrl}/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+
+    const result = await response.json() as { resetToken: string | null };
+    return result.resetToken;
+}
+
+export async function resetPassword(email: string, resetToken: string, newPassword: string): Promise<void> {
+    const response = await request(`${authUrl}/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, resetToken, newPassword })
+    });
+
+    if (!response.ok) {
+        throw new Error(await getErrorMessage(response));
+    }
+}
+
 export async function logout(): Promise<void> {
     const response = await request(`${authUrl}/logout`, {
         method: "POST",
