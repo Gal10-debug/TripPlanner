@@ -11,6 +11,7 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripLink> TripLinks => Set<TripLink>();
     public DbSet<ItineraryItem> ItineraryItems => Set<ItineraryItem>();
+    public DbSet<PackingItem> PackingItems => Set<PackingItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -29,6 +30,12 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ItineraryItem>()
+            .HasOne(item => item.Trip)
+            .WithMany()
+            .HasForeignKey(item => item.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PackingItem>()
             .HasOne(item => item.Trip)
             .WithMany()
             .HasForeignKey(item => item.TripId)

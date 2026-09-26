@@ -141,9 +141,47 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 .activity-actions button { padding: 0; color: var(--green); background: transparent; font-size: 11px; font-weight: 700; }
 .activity-actions button:last-child { color: #a54d3c; }
 .day-divider { grid-column: 1 / -1; height: 1px; margin: 8px 0 22px; background: var(--line); }
+.packing-panel { margin-top: 30px; padding-top: 28px; border-top: 1px solid var(--line); }
+.packing-heading,.packing-progress > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.packing-heading .eyebrow { margin-bottom: 7px; }
+.packing-heading h3 { margin: 0; color: var(--ink); font: 600 22px 'Playfair Display',serif; }
+.packing-heading__actions { display: flex; gap: 10px; }
+.packing-progress { margin-top: 22px; padding: 14px 16px; border-radius: 10px; background: #f6f5ef; }
+.packing-progress span,.packing-progress strong { color: var(--muted); font-size: 12px; }
+.packing-progress strong { color: var(--green); }
+.progress-track { height: 6px; margin-top: 10px; overflow: hidden; border-radius: 10px; background: #dfe6df; }
+.progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--orange); transition: width .25s ease; }
+.template-picker { margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #f6f5ef; }
+.template-picker > span { color: var(--ink); font-size: 13px; font-weight: 700; }
+.template-picker > div { display: grid; grid-template-columns: repeat(4,1fr); gap: 9px; margin: 12px 0 10px; }
+.template-picker button { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 13px 8px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--paper); font-size: 11px; font-weight: 700; }
+.template-picker button:hover { border-color: var(--orange); }
+.template-picker button b { color: var(--orange); font-size: 18px; }
+.template-picker small { color: var(--muted); font-size: 11px; }
+.packing-form { display: grid; grid-template-columns: 1.3fr 1fr 90px; gap: 12px; margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #f6f5ef; }
+.packing-form label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.packing-form input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; outline: none; color: var(--ink); background: white; }
+.packing-form .card-actions { grid-column: 1 / -1; }
+.packing-status { margin: 24px 0 0; color: var(--muted); font-size: 13px; }
+.packing-empty { min-height: 130px; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; color: var(--muted); }
+.packing-empty > span { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--orange); border-radius: 7px; color: var(--orange); }
+.packing-empty p { margin: 0; }
+.packing-groups { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin-top: 24px; align-items: start; }
+.packing-group { overflow: hidden; border: 1px solid var(--line); border-radius: 11px; }
+.packing-group h4 { display: flex; justify-content: space-between; margin: 0; padding: 11px 14px; color: var(--ink); background: #f6f5ef; font-size: 12px; letter-spacing: .4px; }
+.packing-group h4 span { color: var(--muted); font-weight: 500; }
+.packing-item { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 8px 11px; border-top: 1px solid var(--line); }
+.packing-item label { position: relative; display: flex; align-items: center; min-width: 0; gap: 9px; color: var(--ink); font-size: 13px; cursor: pointer; }
+.packing-item label input { position: absolute; opacity: 0; pointer-events: none; }
+.custom-check { display: grid; place-items: center; flex: 0 0 auto; width: 19px; height: 19px; border: 1px solid #aab7b1; border-radius: 5px; color: transparent; font-size: 11px; }
+.packing-item--done .custom-check { border-color: var(--green); color: white; background: var(--green); }
+.packing-item--done label > span:nth-child(3) { color: #8b9691; text-decoration: line-through; }
+.packing-item small { color: var(--muted); }
+.packing-item > button { padding: 3px 6px; color: #a54d3c; background: transparent; font-size: 18px; opacity: 0; }
+.packing-item:hover > button,.packing-item > button:focus { opacity: 1; }
 .empty-state { min-height: 250px; display: grid; place-content: center; justify-items: center; text-align: center; color: var(--muted); }
 .empty-state > span { font-size: 42px; color: var(--orange); }
 .empty-state h3 { margin: 10px 0 6px; color: var(--ink); font: 600 24px 'Playfair Display',serif; }
 .empty-state p { margin: 0; }
 @media (max-width:880px) { .welcome-page { grid-template-columns: 1fr; } .welcome-hero { display: none; } .welcome-panel { min-height: 100svh; padding: 36px 24px 24px; } .mobile-brand { display: flex; } .auth-footer { padding-top: 34px; } .planner-layout { grid-template-columns: 1fr; } .trip-grid { grid-template-columns: 1fr; } }
-@media (max-width:560px) { .dashboard-header { padding: 0 18px; } .account-actions > span { display: none; } .dashboard-content { padding: 44px 18px 60px; } .dashboard-intro h1 { font-size: 48px; letter-spacing: -2px; } .planner-layout { gap: 36px; margin-top: 40px; } .trip-card__summary { grid-template-columns: 1fr 30px; gap: 12px; padding: 20px; } .trip-card__dates { grid-column: 1; grid-row: 2; text-align: left; } .expand-icon { grid-column: 2; grid-row: 1 / 3; } .trip-details { padding: 22px 20px; } .details-view,.details-form__row,.activity-form__row { grid-template-columns: 1fr; } .detail-block--wide { grid-column: auto; } .link-row { grid-template-columns: 1fr 32px; } .link-row input:nth-child(2) { grid-column: 1; } .link-row .remove-link { grid-column: 2; grid-row: 1 / 3; } .itinerary-day { grid-template-columns: 1fr; gap: 12px; } .day-label { flex-direction: row; align-items: baseline; gap: 8px; } .day-divider { margin-top: 0; } .activity-actions { opacity: 1; } }
+@media (max-width:560px) { .dashboard-header { padding: 0 18px; } .account-actions > span { display: none; } .dashboard-content { padding: 44px 18px 60px; } .dashboard-intro h1 { font-size: 48px; letter-spacing: -2px; } .planner-layout { gap: 36px; margin-top: 40px; } .trip-card__summary { grid-template-columns: 1fr 30px; gap: 12px; padding: 20px; } .trip-card__dates { grid-column: 1; grid-row: 2; text-align: left; } .expand-icon { grid-column: 2; grid-row: 1 / 3; } .trip-details { padding: 22px 20px; } .details-view,.details-form__row,.activity-form__row,.packing-form,.packing-groups { grid-template-columns: 1fr; } .detail-block--wide { grid-column: auto; } .link-row { grid-template-columns: 1fr 32px; } .link-row input:nth-child(2) { grid-column: 1; } .link-row .remove-link { grid-column: 2; grid-row: 1 / 3; } .itinerary-day { grid-template-columns: 1fr; gap: 12px; } .day-label { flex-direction: row; align-items: baseline; gap: 8px; } .day-divider { margin-top: 0; } .activity-actions,.packing-item > button { opacity: 1; } .packing-heading { align-items: flex-start; flex-direction: column; } .template-picker > div { grid-template-columns: repeat(2,1fr); } }
