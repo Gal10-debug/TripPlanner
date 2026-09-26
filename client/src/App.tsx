@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getTrips, deleteTrip, updateTrip } from "./services/tripServices";
+import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
 import TripForm from "./components/TripForm";
-import type { Trip } from "./models/Trip";
+import type { Trip, TripDetailsRequest } from "./models/Trip";
 import TripCard from "./components/TripCard";
 import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
@@ -61,6 +61,11 @@ function App() {
     );
   }
 
+  async function handleUpdateDetails(id: number, details: TripDetailsRequest) {
+    const savedTrip = await updateTripDetails(id, details);
+    setTrips(currentTrips => currentTrips.map(trip => trip.id === id ? savedTrip : trip));
+  }
+
   async function handleLogout() {
     await logout();
     setTrips([]);
@@ -113,7 +118,7 @@ function App() {
           <section className="trips-section">
             <div className="section-heading"><h2>Upcoming trips</h2><span>{trips.length} {trips.length === 1 ? "journey" : "journeys"}</span></div>
             {trips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>Your map is wide open</h3><p>Add your first trip and start counting down the days.</p></div> :
-              <div className="trip-grid">{trips.map((trip) => <TripCard key={trip.id} trip={trip} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} />)}</div>}
+              <div className="trip-grid">{trips.map((trip) => <TripCard key={trip.id} trip={trip} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />)}</div>}
           </section>
         </div>
       </section>

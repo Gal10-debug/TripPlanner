@@ -20,6 +20,7 @@ public class TripsController(TripPlannerContext context) : ControllerBase
     {
         return Ok(await context.Trips
             .AsNoTracking()
+            .Include(trip => trip.UsefulLinks)
             .Where(trip => trip.UserId == UserId)
             .ToListAsync());
     }
@@ -28,6 +29,7 @@ public class TripsController(TripPlannerContext context) : ControllerBase
     public async Task<ActionResult<Trip>> GetTrip(int id)
     {
         var trip = await context.Trips.AsNoTracking()
+            .Include(t => t.UsefulLinks)
             .FirstOrDefaultAsync(t => t.Id == id && t.UserId == UserId);
 
         return trip is null ? NotFound() : Ok(trip);
@@ -84,6 +86,33 @@ public class TripsController(TripPlannerContext context) : ControllerBase
 
         await context.SaveChangesAsync();
 
+        return Ok(trip);
+    }
+
+    [HttpPut("{id}/details")]
+    public async Task<ActionResult<Trip>> UpdateTripDetails(int id, UpdateTripDetailsRequest request)
+    {
+        var trip = await context.Trips
+            .Include(t => t.UsefulLinks)
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == UserId);
+        if (trip is null)
+        {
+            return NotFound();
+        }
+
+        trip.Notes = request.Notes.Trim();
+        trip.AccommodationName = request.AccommodationName.Trim();
+        trip.AccommodationAddress = request.AccommodationAddress.Trim();
+        trip.BookingReference = request.BookingReference.Trim();
+
+        context.TripLinks.RemoveRange(trip.UsefulLinks);
+        trip.UsefulLinks = request.UsefulLinks.Select(link => new TripLink
+        {
+            Label = link.Label.Trim(),
+            Url = link.Url.Trim()
+        }).ToList();
+
+        await context.SaveChangesAsync();
         return Ok(trip);
     }
 }

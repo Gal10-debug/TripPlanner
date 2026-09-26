@@ -1,4 +1,4 @@
-import type { Trip } from "../models/Trip";
+import type { Trip, TripDetailsRequest } from "../models/Trip";
 import type { CreateTripRequest } from "../models/CreateTripRequest";
 
 export async function getTrips(): Promise<Trip[]> {
@@ -56,6 +56,21 @@ export async function updateTrip(
 
     if (!response.ok) {
         throw new Error("Failed to update trip");
+    }
+
+    return response.json();
+}
+
+export async function updateTripDetails(id: number, details: TripDetailsRequest): Promise<Trip> {
+    const response = await fetch(`/api/trips/${id}/details`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(details)
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to update trip details");
     }
 
     return response.json();

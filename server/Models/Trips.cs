@@ -18,6 +18,16 @@ public class Trip
 
     public DateOnly EndDate { get; set; }
 
+    public string Notes { get; set; } = string.Empty;
+
+    public string AccommodationName { get; set; } = string.Empty;
+
+    public string AccommodationAddress { get; set; } = string.Empty;
+
+    public string BookingReference { get; set; } = string.Empty;
+
+    public List<TripLink> UsefulLinks { get; set; } = [];
+
     [NotMapped]
     public int Days => EndDate.DayNumber - StartDate.DayNumber + 1;
 }
