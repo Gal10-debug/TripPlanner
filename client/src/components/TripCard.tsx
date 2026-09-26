@@ -3,15 +3,17 @@ import type { Trip, TripDetailsRequest } from "../models/Trip";
 import ItineraryPanel from "./ItineraryPanel";
 import PackingPanel from "./PackingPanel";
 import BudgetPanel from "./BudgetPanel";
+import type { TripStatus } from "../utils/tripStatus";
 
 interface TripCardProps {
     trip: Trip;
     onDelete: (id: number) => void;
     onUpdate: (trip: Trip) => Promise<void>;
     onUpdateDetails: (id: number, details: TripDetailsRequest) => Promise<void>;
+    status: TripStatus;
 }
 
-function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) {
+function TripCard({ trip, status, onDelete, onUpdate, onUpdateDetails }: TripCardProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [isEditingDetails, setIsEditingDetails] = useState(false);
@@ -88,7 +90,7 @@ function TripCard({ trip, onDelete, onUpdate, onUpdateDetails }: TripCardProps) 
     return (
         <article className={`trip-card ${isOpen ? "trip-card--open" : ""}`}>
             <button className="trip-card__summary" onClick={() => setIsOpen(open => !open)} aria-expanded={isOpen}>
-                <span className="trip-card__place"><small>{trip.country}</small><strong>{trip.destination}</strong></span>
+                <span className="trip-card__place"><small>{trip.country}</small><strong>{trip.destination}</strong><span className={`trip-status trip-status--${status}`}>{status}</span></span>
                 <span className="trip-card__dates">{formatDate(trip.startDate)} — {formatDate(trip.endDate)}<small>{trip.days} days</small></span>
                 <span className="expand-icon" aria-hidden="true">{isOpen ? "−" : "+"}</span>
             </button>

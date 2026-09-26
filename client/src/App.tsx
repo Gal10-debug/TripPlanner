@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
 import TripForm from "./components/TripForm";
 import type { Trip, TripDetailsRequest } from "./models/Trip";
@@ -6,6 +6,7 @@ import TripCard from "./components/TripCard";
 import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
+import { getTripStatus, sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
 
 
 import "./App.css";
@@ -15,6 +16,14 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [error, setError] = useState("");
+  const [tripFilter, setTripFilter] = useState<TripStatus>("upcoming");
+
+  const tripsByStatus = useMemo(() => ({
+    current: sortTripsByStatus(trips, "current"),
+    upcoming: sortTripsByStatus(trips, "upcoming"),
+    completed: sortTripsByStatus(trips, "completed")
+  }), [trips]);
+  const visibleTrips = tripsByStatus[tripFilter];
 
   useEffect(() => {
     async function checkSession() {
@@ -116,14 +125,23 @@ function App() {
         <div className="planner-layout">
           <aside className="trip-form-card"><TripForm onTripAdded={(trip) => setTrips(currentTrips => [...currentTrips, trip])} /></aside>
           <section className="trips-section">
-            <div className="section-heading"><h2>Upcoming trips</h2><span>{trips.length} {trips.length === 1 ? "journey" : "journeys"}</span></div>
-            {trips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>Your map is wide open</h3><p>Add your first trip and start counting down the days.</p></div> :
-              <div className="trip-grid">{trips.map((trip) => <TripCard key={trip.id} trip={trip} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />)}</div>}
+            <div className="section-heading"><h2>Your trips</h2><span>{trips.length} {trips.length === 1 ? "journey" : "journeys"}</span></div>
+            <div className="status-tabs" role="tablist" aria-label="Filter trips by status">
+              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <button key={status} role="tab" aria-selected={tripFilter === status} className={tripFilter === status ? "status-tab status-tab--active" : "status-tab"} onClick={() => setTripFilter(status)}><span className={`status-dot status-dot--${status}`} />{status}<b>{tripsByStatus[status].length}</b></button>)}
+            </div>
+            {visibleTrips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>{emptyStateCopy[tripFilter].title}</h3><p>{emptyStateCopy[tripFilter].body}</p></div> :
+              <div className="trip-grid">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} status={getTripStatus(trip)} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />)}</div>}
           </section>
         </div>
       </section>
     </main>
   );
 }
+
+const emptyStateCopy: Record<TripStatus, { title: string; body: string }> = {
+  current: { title: "No trips underway", body: "When your travel dates arrive, your trip will appear here automatically." },
+  upcoming: { title: "Your map is wide open", body: "Add your next trip and start counting down the days." },
+  completed: { title: "No past journeys yet", body: "Completed trips will collect here as your travel story grows." }
+};
 
 export default App;
