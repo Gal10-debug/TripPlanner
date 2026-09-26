@@ -8,6 +8,7 @@ import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
 import { getTripStatus, sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
 import InvitationsPanel from "./components/InvitationsPanel";
+import DepartureAlerts from "./components/DepartureAlerts";
 
 
 import "./App.css";
@@ -130,6 +131,7 @@ function App() {
         <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>Where to next?</h1><p>Turn the places on your mind into plans on your calendar.</p></div>
         {error && <p className="alert" role="alert">{error}</p>}
         <InvitationsPanel onAccepted={refreshTrips} />
+        <DepartureAlerts />
         <div className="planner-layout">
           <aside className="trip-form-card"><TripForm onTripAdded={(trip) => setTrips(currentTrips => [...currentTrips, trip])} /></aside>
           <section className="trips-section">
