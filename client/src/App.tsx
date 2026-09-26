@@ -3,21 +3,45 @@ import { getTrips, deleteTrip, updateTrip } from "./services/tripServices";
 import TripForm from "./components/TripForm";
 import type { Trip } from "./models/Trip";
 import TripCard from "./components/TripCard";
+import AuthForm from "./components/AuthForm";
+import type { User } from "./models/User";
+import { getCurrentUser, logout } from "./services/authServices";
 
 
 import "./App.css";
 
 function App() {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadTrips() {
-      const tripsData = await getTrips();
-      setTrips(tripsData);
+    async function checkSession() {
+      try {
+        setUser(await getCurrentUser());
+      } catch (sessionError) {
+        setError(sessionError instanceof Error ? sessionError.message : "Failed to check your session.");
+      } finally {
+        setIsCheckingSession(false);
+      }
     }
 
-    loadTrips();
+    checkSession();
   }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setTrips([]);
+      return;
+    }
+
+    getTrips()
+      .then(setTrips)
+      .catch(loadError => {
+        setError(loadError instanceof Error ? loadError.message : "Failed to load trips.");
+      });
+  }, [user]);
 
   async function handleDeleteTrip(id: number) {
     await deleteTrip(id);
@@ -38,13 +62,35 @@ function App() {
     );
   }
 
+  async function handleLogout() {
+    await logout();
+    setUser(null);
+  }
+
+  if (isCheckingSession) {
+    return <p>Checking your session...</p>;
+  }
+
+  if (!user) {
+    return (
+      <div>
+        <h1>Trip Planner</h1>
+        {error && <p role="alert">{error}</p>}
+        <AuthForm onAuthenticated={setUser} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <h1>Trip Planner</h1>
+      <p>Signed in as {user.email}</p>
+      <button onClick={handleLogout}>Log out</button>
+      {error && <p role="alert">{error}</p>}
 
       <TripForm
         onTripAdded={(trip) => {
-          setTrips([...trips, trip]);
+          setTrips(currentTrips => [...currentTrips, trip]);
         }}
       />
 

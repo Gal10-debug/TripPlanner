@@ -1,10 +1,14 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace server.Models;
 
 public class Trip
 {
     public int Id { get; set; }
+
+    [JsonIgnore]
+    public string UserId { get; set; } = string.Empty;
 
     public string Destination { get; set; } = string.Empty;
 

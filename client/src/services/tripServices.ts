@@ -2,7 +2,9 @@ import type { Trip } from "../models/Trip";
 import type { CreateTripRequest } from "../models/CreateTripRequest";
 
 export async function getTrips(): Promise<Trip[]> {
-    const response = await fetch("http://localhost:5075/api/trips");
+    const response = await fetch("http://localhost:5075/api/trips", {
+        credentials: "include"
+    });
 
     if (!response.ok) {
         throw new Error("Failed to fetch trips");
@@ -17,6 +19,7 @@ export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
         headers: {
             "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(trip)
     });
 
@@ -29,7 +32,8 @@ export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
 
 export async function deleteTrip(id: number): Promise<void> {
     const response = await fetch(`http://localhost:5075/api/trips/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        credentials: "include"
     });
 
     if (!response.ok) {
@@ -46,6 +50,7 @@ export async function updateTrip(
         headers: {
             "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify(trip)
     });
 
