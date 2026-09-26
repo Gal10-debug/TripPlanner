@@ -1,5 +1,6 @@
 export interface CreateTripRequest {
     destination: string;
     country: string;
-    days: number;
+    startDate: string;
+    endDate: string;
 }

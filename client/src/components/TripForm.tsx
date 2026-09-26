@@ -9,13 +9,26 @@ interface TripFormProps {
 function TripForm({ onTripAdded }: TripFormProps) {
     const [destination, setDestination] = useState("");
     const [country, setCountry] = useState("");
-    const [days, setDays] = useState(0);
+    const [startDate, setStartDate] = useState("");
+    const [endDate, setEndDate] = useState("");
+    const [error, setError] = useState("");
 
     async function handleAddTrip() {
+        if (!destination.trim() || !country.trim() || !startDate || !endDate) {
+            setError("Please complete every field.");
+            return;
+        }
+
+        if (endDate < startDate) {
+            setError("The end date cannot be before the start date.");
+            return;
+        }
+
         const newTrip = {
-            destination,
-            country,
-            days
+            destination: destination.trim(),
+            country: country.trim(),
+            startDate,
+            endDate
         };
 
         const createdTrip = await addTrip(newTrip);
@@ -24,7 +37,9 @@ function TripForm({ onTripAdded }: TripFormProps) {
 
         setDestination("");
         setCountry("");
-        setDays(0);
+        setStartDate("");
+        setEndDate("");
+        setError("");
     }
 
     return (
@@ -45,12 +60,26 @@ function TripForm({ onTripAdded }: TripFormProps) {
                 onChange={(e) => setCountry(e.target.value)}
             />
 
-            <input
-                type="number"
-                placeholder="Days"
-                value={days}
-                onChange={(e) => setDays(Number(e.target.value))}
-            />
+            <label>
+                Start date
+                <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                />
+            </label>
+
+            <label>
+                End date
+                <input
+                    type="date"
+                    min={startDate}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                />
+            </label>
+
+            {error && <p role="alert">{error}</p>}
 
             <button onClick={handleAddTrip}>
                 Add Trip

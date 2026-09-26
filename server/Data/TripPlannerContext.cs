@@ -1,10 +1,51 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using server.Models;
 
 namespace server.Data;
 
 public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
-    : DbContext(options)
+    : IdentityDbContext<IdentityUser>(options)
 {
     public DbSet<Trip> Trips => Set<Trip>();
+    public DbSet<TripLink> TripLinks => Set<TripLink>();
+    public DbSet<ItineraryItem> ItineraryItems => Set<ItineraryItem>();
+    public DbSet<PackingItem> PackingItems => Set<PackingItem>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Trip>()
+            .HasOne<IdentityUser>()
+            .WithMany()
+            .HasForeignKey(trip => trip.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TripLink>()
+            .HasOne(link => link.Trip)
+            .WithMany(trip => trip.UsefulLinks)
+            .HasForeignKey(link => link.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ItineraryItem>()
+            .HasOne(item => item.Trip)
+            .WithMany()
+            .HasForeignKey(item => item.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PackingItem>()
+            .HasOne(item => item.Trip)
+            .WithMany()
+            .HasForeignKey(item => item.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Expense>()
+            .HasOne(expense => expense.Trip)
+            .WithMany()
+            .HasForeignKey(expense => expense.TripId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
 }
