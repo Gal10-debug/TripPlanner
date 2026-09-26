@@ -2,7 +2,7 @@ import type { Trip } from "../models/Trip";
 import type { CreateTripRequest } from "../models/CreateTripRequest";
 
 export async function getTrips(): Promise<Trip[]> {
-    const response = await fetch("http://localhost:5075/api/trips", {
+    const response = await fetch("/api/trips", {
         credentials: "include"
     });
 
@@ -14,7 +14,7 @@ export async function getTrips(): Promise<Trip[]> {
 }
 
 export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
-    const response = await fetch("http://localhost:5075/api/trips", {
+    const response = await fetch("/api/trips", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -31,7 +31,7 @@ export async function addTrip(trip: CreateTripRequest): Promise<Trip> {
 }
 
 export async function deleteTrip(id: number): Promise<void> {
-    const response = await fetch(`http://localhost:5075/api/trips/${id}`, {
+    const response = await fetch(`/api/trips/${id}`, {
         method: "DELETE",
         credentials: "include"
     });
@@ -45,7 +45,7 @@ export async function updateTrip(
     id: number,
     trip: CreateTripRequest
 ): Promise<Trip> {
-    const response = await fetch(`http://localhost:5075/api/trips/${id}`, {
+    const response = await fetch(`/api/trips/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"

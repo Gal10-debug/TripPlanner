@@ -1,6 +1,14 @@
 import type { User } from "../models/User";
 
-const authUrl = "http://localhost:5075/api/auth";
+const authUrl = "/api/auth";
+
+async function request(url: string, options?: RequestInit): Promise<Response> {
+    try {
+        return await fetch(url, options);
+    } catch {
+        throw new Error("Unable to connect to the server. Please make sure it is running and try again.");
+    }
+}
 
 async function getErrorMessage(response: Response): Promise<string> {
     const body = await response.json().catch(() => null) as {
@@ -16,7 +24,7 @@ async function getErrorMessage(response: Response): Promise<string> {
 }
 
 export async function register(email: string, password: string): Promise<void> {
-    const response = await fetch(`${authUrl}/register`, {
+    const response = await request(`${authUrl}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -29,7 +37,7 @@ export async function register(email: string, password: string): Promise<void> {
 }
 
 export async function login(email: string, password: string): Promise<void> {
-    const response = await fetch(`${authUrl}/login?useCookies=true`, {
+    const response = await request(`${authUrl}/login?useCookies=true`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -42,7 +50,7 @@ export async function login(email: string, password: string): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    const response = await fetch(`${authUrl}/logout`, {
+    const response = await request(`${authUrl}/logout`, {
         method: "POST",
         credentials: "include"
     });
@@ -53,9 +61,16 @@ export async function logout(): Promise<void> {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-    const response = await fetch(`${authUrl}/me`, {
-        credentials: "include"
-    });
+    let response: Response;
+
+    try {
+        response = await request(`${authUrl}/me`, {
+            credentials: "include"
+        });
+    } catch {
+        // A session check should never prevent the sign-in screen from opening.
+        return null;
+    }
 
     if (response.status === 401) {
         return null;

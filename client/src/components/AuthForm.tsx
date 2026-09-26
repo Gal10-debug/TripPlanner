@@ -38,36 +38,41 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
     }
 
     return (
-        <form onSubmit={handleSubmit}>
-            <h2>{mode === "login" ? "Log in" : "Create account"}</h2>
+        <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="auth-heading">
+                <span className="eyebrow">{mode === "login" ? "Welcome back" : "Join Wanderly"}</span>
+                <h2>{mode === "login" ? "Ready for your next trip?" : "Start your travel story"}</h2>
+                <p>{mode === "login" ? "Sign in to pick up where you left off." : "Create an account to save your plans in one place."}</p>
+            </div>
 
-            <input
+            <div className="field-group"><label htmlFor="email">Email address</label><input
+                id="email"
                 type="email"
-                placeholder="Email"
+                placeholder="you@example.com"
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
-            />
+            /></div>
 
-            <input
+            <div className="field-group"><label htmlFor="password">Password</label><input
+                id="password"
                 type="password"
-                placeholder="Password"
+                placeholder="At least 8 characters"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
-            />
+            /></div>
 
-            {error && <p role="alert">{error}</p>}
+            {error && <p className="alert" role="alert">{error}</p>}
 
-            <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
+            <button className="button button--primary" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Just a moment…" : mode === "login" ? "Sign in" : "Create my account"}
+                {!isSubmitting && <span aria-hidden="true">→</span>}
             </button>
-            <button type="button" onClick={switchMode}>
-                {mode === "login" ? "Create an account" : "I already have an account"}
-            </button>
+            <p className="auth-switch">{mode === "login" ? "New to Wanderly?" : "Already have an account?"}<button type="button" onClick={switchMode}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>
         </form>
     );
 }
