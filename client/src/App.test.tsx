@@ -114,7 +114,7 @@ it('saves trip edits on the dedicated page and updates the list', async () => {
   vi.mocked(updateTrip).mockResolvedValue({ ...sampleTrip, destination: 'Florence' });
   open('/trips/123');
   fireEvent.click(await screen.findByRole('button', { name: 'Edit trip' }));
-  fireEvent.change(screen.getByRole('textbox', { name: 'Destination' }), { target: { value: 'Florence' } });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Destination' }), { target: { value: 'Florence' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
   expect(await screen.findByRole('heading', { name: 'Florence' })).toBeTruthy();
   expect(updateTrip).toHaveBeenCalledWith(123, { destination: 'Florence', country: 'Italy', startDate: '2099-06-01', endDate: '2099-06-05' });

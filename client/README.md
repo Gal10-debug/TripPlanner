@@ -170,3 +170,13 @@ Automated tests cover summary contents, empty states, HTML escaping, unsafe link
 The Notifications page saves email and browser preferences per account; Settings links there. Both are off initially. Email is available only when the server's SMTP configuration is present. Enabling email applies to subsequently created notifications, and opting out cancels pending email. In-app reminders stay available regardless of channel preferences.
 
 Saved browser alerts resume after sign-in on devices with granted permission. On another device, use **Allow browser alerts on this device**. Permission is never requested automatically. Browser alerts still need an open app; there is no closed-app web push. A saved preference change is loaded by other open sessions when they reload.
+
+## Country and city autocomplete
+
+New-trip and edit-trip forms share country/city fields. Countries load locally: all 249 ISO 3166-1 entries from the public-domain [IANA country-code table](https://data.iana.org/time-zones/tzdb/iso3166.tab), plus Kosovo (XK). `Intl.DisplayNames` supplies English/Hebrew labels. Search accepts either language, two-letter codes and common aliases such as USA/UK. Choosing or editing the country clears the previous destination.
+
+City search begins after two characters and a 300 ms pause, using the selected ISO code as Open-Meteo's `countryCode` filter. Results include populated places and regional labels, with up to 20 suggestions per query. Continue typing to narrow the results. The provider's global catalogue is not a guarantee of every settlement; users can enter a city manually if a place is missing or the service is unavailable. Two-letter queries use the provider's exact-name matching; three or more letters support prefix matching.
+
+Requests have an eight-second timeout, cancellation and stale-response protection. A bounded in-memory cache avoids repeated public lookups. Country choices work offline; city suggestions need internet access. Keyboard navigation supports arrows, Enter, Escape and Tab. Selected country/city text uses the existing trip fields, without a database migration.
+
+Tests cover country coverage, Hebrew aliases, keyboard selection, country filtering, debounce/cancellation, manual fallback, retry, and trip submission. Live country-filtered geocoding has been checked; visual browser/mobile verification remains pending.

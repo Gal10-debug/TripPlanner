@@ -1,3 +1,4 @@
+import CountryCityFields from "./CountryCityFields";
 import DestinationMap from "./DestinationMap";
 import { t, getPreferences } from "../i18n/preferences";
 import { useState } from "react";
@@ -99,8 +100,7 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
     if (isEditing) {
         return (
             <article className="trip-card trip-card--editing">
-                <input aria-label={t("Destination")} type="text" value={destination} onChange={(e) => setDestination(e.target.value)} />
-                <input aria-label={t("Country")} type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
+                <CountryCityFields country={country} destination={destination} onCountryChange={setCountry} onDestinationChange={setDestination} disabled={isSaving} />
                 <label>{t("Start date")}<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
                 <label>{t("End date")}<input type="date" min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
                 {error && <p className="alert" role="alert">{t(error)}</p>}
