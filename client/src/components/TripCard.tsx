@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { Trip } from "../models/Trip";
 import type { TripStatus } from "../utils/tripStatus";
 
 function TripCard({ trip, status }: { trip: Trip; status: TripStatus }) {
+    const location = useLocation();
     return <article className="trip-card">
-        <Link className="trip-card__summary" to={`/trips/${trip.id}`} aria-label={`View trip to ${trip.destination}, ${trip.country}`}>
+        <Link className="trip-card__summary" to={`/trips/${trip.id}`} state={{ tripsSearch: location.search }} aria-label={`View trip to ${trip.destination}, ${trip.country}`}>
             <span className="trip-card__place"><small>{trip.country}</small><strong>{trip.destination}</strong><span className="trip-card__badges"><span className={`trip-status trip-status--${status}`}>{status}</span>{trip.accessRole !== "Owner" && <span className="access-badge">Shared · {trip.accessRole}</span>}</span></span>
             <span className="trip-card__dates">{formatDate(trip.startDate)} — {formatDate(trip.endDate)}<small>{trip.days} days</small></span>
             <span className="expand-icon" aria-hidden="true">→</span>

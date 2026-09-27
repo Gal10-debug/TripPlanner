@@ -5,6 +5,7 @@ export interface Trip {
     startDate: string;
     endDate: string;
     days: number;
+    createdAt: string | null;
     notes: string;
     accommodationName: string;
     accommodationAddress: string;

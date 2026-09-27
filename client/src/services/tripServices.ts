@@ -82,6 +82,7 @@ export async function updateTripDetails(id: number, details: TripDetailsRequest)
 function normalizeTrip(trip: Trip): Trip {
     return {
         ...trip,
+        createdAt: trip.createdAt ?? null,
         notes: trip.notes ?? "",
         accommodationName: trip.accommodationName ?? "",
         accommodationAddress: trip.accommodationAddress ?? "",

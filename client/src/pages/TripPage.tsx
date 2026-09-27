@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
 import { getTripStatus } from "../utils/tripStatus";
 import TripDetails from "../components/TripDetails";
@@ -16,15 +16,18 @@ interface TripPageProps {
 export default function TripPage({ trips, isLoading, loadError, onRetry, onDelete, onUpdate, onUpdateDetails }: TripPageProps) {
     const { tripId = "" } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const savedSearch = (location.state as { tripsSearch?: unknown } | null)?.tripsSearch;
+    const returnPath = `/trips${typeof savedSearch === "string" && savedSearch.startsWith("?") ? savedSearch : ""}`;
     const trip = /^[1-9]\d*$/.test(tripId) ? trips.find(item => item.id === Number(tripId)) : undefined;
 
     async function deleteAndReturn(id: number) {
         await onDelete(id);
-        navigate("/trips", { replace: true });
+        navigate(returnPath, { replace: true });
     }
 
     return <section className="trip-page">
-        <Link className="trip-back-link" to="/trips">← All trips</Link>
+        <Link className="trip-back-link" to={returnPath}>← All trips</Link>
         {isLoading ? <p role="status">Loading trip…</p> : loadError ? <div role="alert"><p>{loadError}</p><button className="button" onClick={onRetry}>Retry loading trips</button></div> : !trip ?
             <div className="empty-state"><h1>Trip not found</h1><p>This trip may have been deleted or is no longer shared with you.</p></div> : <>
                 <div className="dashboard-intro"><span className="eyebrow">{trip.country}</span><h1>{trip.destination}</h1></div>

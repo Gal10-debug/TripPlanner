@@ -68,3 +68,13 @@ on the next request. Invalid or missing months return HTTP 400.
 
 Calendar integration tests cover access control, revoked sharing, month boundaries,
 cross-year trips, leap days, invalid parameters, and empty months.
+
+
+## Trip creation dates
+
+The `AddTripCreatedAt` migration adds a nullable `CreatedAt` column. Existing rows
+stay null, preserving their data without fabricating creation timestamps. New
+trips receive `DateTimeOffset.UtcNow` on the server and return `createdAt` in trip
+API responses. The create/edit request DTOs do not accept creation timestamps;
+edits leave the original value unchanged. The migration runs at API startup,
+consistent with the existing migration workflow. Restart the server after updating.

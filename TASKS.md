@@ -28,7 +28,14 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Date-only handling, leap years, cross-month/year spans, loading, retry, empty states, and obsolete-request cancellation.
    - 40 frontend tests, frontend build/lint, and 23 backend integration tests pass.
    - Browser visual verification remains pending because no browser is available.
-5. Destination/country search and sorting by start date, duration, and creation date.
+5. Trip search and sorting — implemented on `feature/trip-search-sort` (based on step 4).
+   - Destination/country search ignores case and accents and supports multiple words.
+   - All/current/upcoming/completed filters show matching counts; six sort choices cover travel date, duration, and date added in either direction.
+   - URL parameters preserve filters on refresh and browser Back; the All trips link and delete return also preserve the list context.
+   - Server-recorded creation dates for new trips; existing trips retain null dates and use their original ID sequence for date-added ordering.
+   - Additive nullable-column migration preserves existing trip data; timestamps cannot be changed through trip create/edit requests.
+   - 55 frontend tests and 25 server tests pass, along with frontend build/lint.
+   - Local API restarted with the updated migration. Browser visual verification remains pending.
 6. Settings: profile, language, timezone, default currency; Hebrew translations and RTL.
 7. Notification center and due-reminder delivery; configurable notification channels.
 8. Destination maps, directions, accommodation links, and activity locations.

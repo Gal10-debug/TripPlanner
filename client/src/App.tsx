@@ -1,15 +1,14 @@
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
-import TripForm from "./components/TripForm";
 import type { Trip, TripDetailsRequest } from "./models/Trip";
-import TripCard from "./components/TripCard";
+import TripsPage from "./pages/TripsPage";
 import TripPage from "./pages/TripPage";
 import CalendarPage from "./pages/CalendarPage";
 import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
-import { getTripStatus, sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
+import { sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
 import InvitationsPanel from "./components/InvitationsPanel";
 import DepartureAlerts from "./components/DepartureAlerts";
 
@@ -23,14 +22,12 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [error, setError] = useState("");
-  const [tripFilter, setTripFilter] = useState<TripStatus>("upcoming");
 
   const tripsByStatus = useMemo(() => ({
     current: sortTripsByStatus(trips, "current"),
     upcoming: sortTripsByStatus(trips, "upcoming"),
     completed: sortTripsByStatus(trips, "completed")
   }), [trips]);
-  const visibleTrips = tripsByStatus[tripFilter];
 
   const refreshTrips = useCallback(async () => {
     setIsLoadingTrips(true);
@@ -162,24 +159,11 @@ function App() {
             <DepartureAlerts />
             {tripsError && <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>Retry loading trips</button></div>}
             <div className="journey-overview">
-              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to="/trips" onClick={() => setTripFilter(status)}><strong>{tripsByStatus[status].length}</strong><span>{status} trips</span></Link>)}
+              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to={`/trips?status=${status}`}><strong>{tripsByStatus[status].length}</strong><span>{status} trips</span></Link>)}
             </div>
             <Link className="button" to="/trips">Plan your next trip</Link>
           </>} />
-          <Route path="/trips" element={<>
-            <PageHeading title="Your trips" description="Turn the places on your mind into plans on your calendar." />
-        <div className="planner-layout">
-          <aside className="trip-form-card"><TripForm onTripAdded={(trip) => setTrips(currentTrips => [...currentTrips, trip])} /></aside>
-          <section className="trips-section">
-            <div className="section-heading"><h2>Your trips</h2><span>{trips.length} {trips.length === 1 ? "journey" : "journeys"}</span></div>
-            <div className="status-tabs" role="tablist" aria-label="Filter trips by status">
-              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <button key={status} role="tab" aria-selected={tripFilter === status} className={tripFilter === status ? "status-tab status-tab--active" : "status-tab"} onClick={() => setTripFilter(status)}><span className={`status-dot status-dot--${status}`} />{status}<b>{tripsByStatus[status].length}</b></button>)}
-            </div>
-            {isLoadingTrips ? <p role="status">Loading trips…</p> : tripsError ? <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>Retry loading trips</button></div> : visibleTrips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>{emptyStateCopy[tripFilter].title}</h3><p>{emptyStateCopy[tripFilter].body}</p></div> :
-              <div className="trip-grid">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} status={getTripStatus(trip)} />)}</div>}
-          </section>
-        </div>
-          </>} />
+          <Route path="/trips" element={<TripsPage trips={trips} isLoading={isLoadingTrips} error={tripsError} onRetry={refreshTrips} onTripAdded={trip => setTrips(currentTrips => [...currentTrips, trip])} />} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/invitations" element={<>
@@ -196,11 +180,5 @@ function App() {
 function PageHeading({ title, description }: { title: string; description: string }) {
   return <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>{title}</h1><p>{description}</p></div>;
 }
-
-const emptyStateCopy: Record<TripStatus, { title: string; body: string }> = {
-  current: { title: "No trips underway", body: "When your travel dates arrive, your trip will appear here automatically." },
-  upcoming: { title: "Your map is wide open", body: "Add your next trip and start counting down the days." },
-  completed: { title: "No past journeys yet", body: "Completed trips will collect here as your travel story grows." }
-};
 
 export default App;

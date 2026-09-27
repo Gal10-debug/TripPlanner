@@ -64,7 +64,7 @@ it.each(['/trips', '/trips/123', '/calendar'])('requires authentication on direc
 });
 
 const sampleTrip: Trip = {
-  id: 123, destination: 'Rome', country: 'Italy', startDate: '2099-06-01', endDate: '2099-06-05', days: 5,
+  id: 123, createdAt: '2026-09-01T12:00:00Z', destination: 'Rome', country: 'Italy', startDate: '2099-06-01', endDate: '2099-06-05', days: 5,
   notes: 'Visit the forum', accommodationName: '', accommodationAddress: '', bookingReference: '', usefulLinks: [], accessRole: 'Owner'
 };
 it('opens a trip directly with all panels and keeps Trips navigation active', async () => {

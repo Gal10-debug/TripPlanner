@@ -413,3 +413,15 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
   .calendar-agenda { padding: 20px 16px; }
   .calendar-agenda h2 { font-size: 22px; }
 }
+
+.trip-search-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-bottom: 18px; }
+.trip-search-controls label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+.trip-search-controls input,.trip-search-controls select { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; color: var(--ink); border: 1px solid var(--line); border-radius: 9px; background: var(--paper); font: inherit; }
+.trip-search-controls input:focus-visible,.trip-search-controls select:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.trip-status-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.trip-search-summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
+.trip-search-summary p,.trip-sort-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.trip-sort-note { margin-bottom: 16px; }
+@media (max-width: 1100px) { .trip-search-controls { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .app-layout .planner-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 560px) { .trip-status-filters .status-tab { flex-wrap: wrap; gap: 4px; padding: 6px 3px; } }

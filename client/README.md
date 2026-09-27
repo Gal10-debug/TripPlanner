@@ -103,3 +103,20 @@ The URL records the month and selected date, for example
 Date-only values remain on their saved calendar day; activity times are displayed
 as entered in the itinerary, without conversion between destination time zones.
 The server supplies the month through `GET /api/calendar?month=YYYY-MM`.
+
+
+## Trip search and sorting
+
+On `/trips`, search by destination or country and choose All, Current, Upcoming,
+or Completed. Matching ignores case and accents; multiple search words can span
+the destination and country. Status counts reflect the current search.
+
+Sort by travel start date, trip length, or date added, in either direction.
+Search, status, and sort are stored in URL parameters, for example
+`/trips?status=all&q=Italy&sort=duration-desc`. Refresh, browser Back, and the
+trip page's All trips link preserve these choices. Adding a trip clears the search
+and selects its status so it is visible.
+
+New trips have server-recorded creation timestamps. Older trips have no recorded
+creation date; their original creation sequence is used for date-added sorting,
+before timestamped trips in oldest-first order (and after them in newest-first).

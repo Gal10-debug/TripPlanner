@@ -54,6 +54,7 @@ public class TripsController(TripPlannerContext context, TripAccessService acces
         var trip = new Trip
         {
             UserId = UserId,
+            CreatedAt = DateTimeOffset.UtcNow,
             Destination = request.Destination,
             Country = request.Country,
             StartDate = request.StartDate,
