@@ -1,3 +1,4 @@
+import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
 import TripForm from "./components/TripForm";
@@ -84,9 +85,14 @@ function App() {
   }
 
   async function handleLogout() {
-    await logout();
-    setTrips([]);
-    setUser(null);
+    try {
+      await logout();
+      setTrips([]);
+      setUser(null);
+      setError("");
+    } catch (logoutError) {
+      setError(logoutError instanceof Error ? logoutError.message : "Failed to log out.");
+    }
   }
 
   if (isCheckingSession) {
@@ -122,16 +128,31 @@ function App() {
   }
 
   return (
-    <main className="dashboard">
+    <div className="dashboard app-layout">
+      <a className="skip-link" href="#page-content">Skip to content</a>
       <header className="dashboard-header">
-        <div className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>Wanderly</span></div>
+        <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>Wanderly</span></Link>
         <div className="account-actions"><span>{user.email}</span><button className="button button--ghost" onClick={handleLogout}>Log out</button></div>
       </header>
-      <section className="dashboard-content">
-        <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>Where to next?</h1><p>Turn the places on your mind into plans on your calendar.</p></div>
+      <nav className="app-navigation" aria-label="Main navigation">
+        <NavLink to="/dashboard">Dashboard</NavLink>
+        <NavLink to="/trips">Trips</NavLink>
+        <NavLink to="/invitations">Invitations</NavLink>
+      </nav>
+      <main id="page-content" className="dashboard-content" tabIndex={-1}>
         {error && <p className="alert" role="alert">{error}</p>}
-        <InvitationsPanel onAccepted={refreshTrips} />
-        <DepartureAlerts />
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<>
+            <PageHeading title="Where to next?" description="Your journeys at a glance." />
+            <DepartureAlerts />
+            <div className="journey-overview">
+              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to="/trips" onClick={() => setTripFilter(status)}><strong>{tripsByStatus[status].length}</strong><span>{status} trips</span></Link>)}
+            </div>
+            <Link className="button" to="/trips">Plan your next trip</Link>
+          </>} />
+          <Route path="/trips" element={<>
+            <PageHeading title="Your trips" description="Turn the places on your mind into plans on your calendar." />
         <div className="planner-layout">
           <aside className="trip-form-card"><TripForm onTripAdded={(trip) => setTrips(currentTrips => [...currentTrips, trip])} /></aside>
           <section className="trips-section">
@@ -143,9 +164,20 @@ function App() {
               <div className="trip-grid">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} status={getTripStatus(trip)} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />)}</div>}
           </section>
         </div>
-      </section>
-    </main>
+          </>} />
+          <Route path="/invitations" element={<>
+            <PageHeading title="Invitations" description="Manage invitations to journeys with friends and family." />
+            <InvitationsPanel onAccepted={refreshTrips} />
+          </>} />
+          <Route path="*" element={<><PageHeading title="Page not found" description="This address does not match a page." /><Link to="/dashboard">Return to dashboard</Link></>} />
+        </Routes>
+      </main>
+    </div>
   );
+}
+
+function PageHeading({ title, description }: { title: string; description: string }) {
+  return <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>{title}</h1><p>{description}</p></div>;
 }
 
 const emptyStateCopy: Record<TripStatus, { title: string; body: string }> = {

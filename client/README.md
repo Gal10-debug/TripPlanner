@@ -73,3 +73,15 @@ export default defineConfig([
 ])
 
 ```
+
+## Application routes
+
+The application uses React Router with browser history. Signed-in routes currently
+include `/dashboard`, `/trips`, and `/invitations`. `/` redirects to the dashboard.
+Authentication preserves the requested URL.
+
+For production, configure the frontend host to return `index.html` for frontend
+routes, preserving static assets and `/api/*` requests. Otherwise, refreshing or
+opening a page URL directly may return a server 404. Vite handles this in development.
+
+Run routing regression tests with `npm test`.

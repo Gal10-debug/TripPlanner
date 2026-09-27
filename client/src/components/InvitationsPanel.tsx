@@ -4,10 +4,11 @@ import { getReceivedInvitations, respondToInvitation } from "../services/sharing
 
 function InvitationsPanel({ onAccepted }: { onAccepted: () => Promise<void> }) {
     const [invitations, setInvitations] = useState<ReceivedInvitation[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [busyId, setBusyId] = useState<number | null>(null);
     const [error, setError] = useState("");
 
-    useEffect(() => { getReceivedInvitations().then(setInvitations).catch(() => setError("Unable to load invitations.")); }, []);
+    useEffect(() => { getReceivedInvitations().then(setInvitations).catch(() => setError("Unable to load invitations.")).finally(() => setIsLoading(false)); }, []);
 
     async function respond(invitation: ReceivedInvitation, response: "accept" | "decline") {
         setBusyId(invitation.id);
@@ -20,7 +21,8 @@ function InvitationsPanel({ onAccepted }: { onAccepted: () => Promise<void> }) {
         finally { setBusyId(null); }
     }
 
-    if (invitations.length === 0 && !error) return null;
+    if (isLoading) return <p role="status">Loading invitations…</p>;
+    if (invitations.length === 0 && !error) return <div className="empty-state"><h2>No pending invitations</h2><p>Invitations from your travel companions will appear here.</p></div>;
     return <section className="invitation-banner"><div><span className="eyebrow">Invitations</span><h2>Someone wants to travel with you</h2></div>{error && <p className="alert">{error}</p>}{invitations.map(invitation => <article key={invitation.id}><div><strong>{invitation.destination}, {invitation.country}</strong><span>You’ve been invited as {invitation.role.toLowerCase()}.</span></div><div><button disabled={busyId === invitation.id} onClick={() => respond(invitation, "accept")}>Accept</button><button disabled={busyId === invitation.id} onClick={() => respond(invitation, "decline")}>Decline</button></div></article>)}</section>;
 }
 
