@@ -6,8 +6,11 @@ import App from './App';
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from './services/tripServices';
 import type { Trip } from './models/Trip';
 import { getCalendarMonth } from './services/calendarServices';
+import { getSettings } from './services/settingsServices';
+import { defaultPreferences, getPreferences, setPreferences } from './i18n/preferences';
 import { getCurrentUser } from './services/authServices';
 
+vi.mock('./services/settingsServices', () => ({ getSettings: vi.fn().mockImplementation(async () => ({ ...defaultPreferences, email: 'traveler@example.com' })) }));
 vi.mock('./services/calendarServices', () => ({ getCalendarMonth: vi.fn() }));
 vi.mock('./services/authServices', () => ({ getCurrentUser: vi.fn(), logout: vi.fn() }));
 vi.mock('./services/tripServices', () => ({ getTrips: vi.fn(), deleteTrip: vi.fn(), updateTrip: vi.fn(), updateTripDetails: vi.fn() }));
@@ -18,9 +21,10 @@ vi.mock('./components/PackingPanel', () => ({ default: () => <p>Packing list</p>
 vi.mock('./components/BudgetPanel', () => ({ default: () => <p>Trip budget</p> }));
 vi.mock('./components/WeatherRemindersPanel', () => ({ default: () => <p>Weather and reminders</p> }));
 vi.mock('./components/SharingPanel', () => ({ default: () => <p>Sharing</p> }));
-afterEach(cleanup);
+afterEach(() => { cleanup(); setPreferences(defaultPreferences); });
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getSettings).mockResolvedValue({ ...defaultPreferences, email: "traveler@example.com" });
   vi.mocked(getCurrentUser).mockResolvedValue({ email: 'traveler@example.com' });
   vi.mocked(getTrips).mockResolvedValue([]);
 });
@@ -56,7 +60,7 @@ it('provides a recovery link for unknown routes', async () => {
   expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Return to dashboard' }).getAttribute('href')).toBe('/dashboard');
 });
-it.each(['/trips', '/trips/123', '/calendar'])('requires authentication on direct page access to %s', async path => {
+it.each(['/trips', '/trips/123', '/calendar', '/settings'])('requires authentication on direct page access to %s', async path => {
   vi.mocked(getCurrentUser).mockResolvedValue(null);
   open(path);
   expect(await screen.findByText('Adventure is waiting.')).toBeTruthy();
@@ -153,4 +157,17 @@ it('opens the calendar route and marks the navigation link active', async () => 
   open('/calendar?month=2026-09');
   expect(await screen.findByRole('table', { name: 'September 2026' })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Calendar' }).getAttribute('aria-current')).toBe('page');
+});
+
+it('restores saved account preferences on sign-in and resets them on logout', async () => {
+  vi.mocked(getSettings).mockResolvedValue({ email: 'traveler@example.com', displayName: 'גל', language: 'he', timeZone: 'Asia/Jerusalem', defaultCurrency: 'ILS' });
+  open('/dashboard');
+  expect(await screen.findByText('גל')).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'הגדרות' }).getAttribute('href')).toBe('/settings');
+  expect(document.documentElement.dir).toBe('rtl');
+  expect(getPreferences().defaultCurrency).toBe('ILS');
+  fireEvent.click(screen.getByRole('button', { name: 'התנתקות' }));
+  expect(await screen.findByText('Adventure is waiting.')).toBeTruthy();
+  expect(document.documentElement.dir).toBe('ltr');
+  expect(getPreferences()).toEqual(defaultPreferences);
 });

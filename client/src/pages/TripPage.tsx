@@ -1,3 +1,4 @@
+import { t } from "../i18n/preferences";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
 import { getTripStatus } from "../utils/tripStatus";
@@ -27,9 +28,9 @@ export default function TripPage({ trips, isLoading, loadError, onRetry, onDelet
     }
 
     return <section className="trip-page">
-        <Link className="trip-back-link" to={returnPath}>← All trips</Link>
-        {isLoading ? <p role="status">Loading trip…</p> : loadError ? <div role="alert"><p>{loadError}</p><button className="button" onClick={onRetry}>Retry loading trips</button></div> : !trip ?
-            <div className="empty-state"><h1>Trip not found</h1><p>This trip may have been deleted or is no longer shared with you.</p></div> : <>
+        <Link className="trip-back-link" to={returnPath}>{t("← All trips")}</Link>
+        {isLoading ? <p role="status">{t("Loading trip…")}</p> : loadError ? <div role="alert"><p>{t(loadError)}</p><button className="button" onClick={onRetry}>{t("Retry loading trips")}</button></div> : !trip ?
+            <div className="empty-state"><h1>{t("Trip not found")}</h1><p>{t("This trip may have been deleted or is no longer shared with you.")}</p></div> : <>
                 <div className="dashboard-intro"><span className="eyebrow">{trip.country}</span><h1>{trip.destination}</h1></div>
                 <div className="trip-grid"><TripDetails key={trip.id} trip={trip} status={getTripStatus(trip)} onDelete={deleteAndReturn} onUpdate={onUpdate} onUpdateDetails={onUpdateDetails} /></div>
             </>}

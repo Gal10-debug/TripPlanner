@@ -425,3 +425,34 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 @media (max-width: 1100px) { .trip-search-controls { grid-template-columns: 1fr; } }
 @media (max-width: 1100px) { .app-layout .planner-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 560px) { .trip-status-filters .status-tab { flex-wrap: wrap; gap: 4px; padding: 6px 3px; } }
+
+.settings-form { max-width: 620px; padding: 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+.settings-form fieldset { display: flex; flex-direction: column; gap: 18px; padding: 0; border: 0; min-width: 0; }
+.settings-form legend { padding: 0 0 24px; font-size: 20px; font-weight: 700; }
+.settings-form label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 700; }
+.settings-form input,.settings-form select { min-width: 0; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font: inherit; }
+.settings-form input[readonly] { background: var(--cream); color: var(--muted); }
+.settings-hint { margin: -8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.settings-form .success-message,.settings-form .alert { margin-top: 18px; }
+[dir="rtl"] .dashboard-intro h1,[dir="rtl"] .hero-copy h1 { letter-spacing: normal; font-family: 'DM Sans', Arial, sans-serif; }
+[dir="rtl"] .trip-card__summary,[dir="rtl"] .calendar-day,[dir="rtl"] .activity-copy,[dir="rtl"] .detail-block { text-align: start; }
+[dir="rtl"] .trip-card__dates { text-align: end; }
+[dir="rtl"] .app-navigation { border-right: 0; border-left: 1px solid var(--line); }
+[dir="rtl"] .calendar-controls button:first-child,[dir="rtl"] .calendar-controls button:nth-child(3) { transform: scaleX(-1); }
+[dir="rtl"] input[type="email"],[dir="rtl"] input[type="url"],[dir="rtl"] input[type="date"],[dir="rtl"] input[type="time"],[dir="rtl"] input[type="number"], [dir="rtl"] #reset-token { direction: ltr; text-align: start; }
+[dir="rtl"] .trip-status-filters .status-tab { font-size: 11px; flex-wrap: wrap; }
+[dir="rtl"] .detail-block p { unicode-bidi: plaintext; }
+@media (max-width: 880px) {
+  .app-navigation { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; }
+  .app-navigation a { padding: 14px 2px; text-align: center; font-size: 11px; }
+  [dir="rtl"] .app-navigation { border-left: 0; }
+}
+@media (max-width: 560px) {
+  .settings-form { padding: 20px; }
+  [dir="rtl"] .trip-card__dates { text-align: start; }
+}
+[dir="rtl"] .activity-item:not(:last-child)::after { left: auto; right: 84px; }
+[dir="rtl"] .activity-item time { text-align: end; }
+[dir="rtl"] .hero-note { right: auto; left: 40px; }
+[dir="rtl"] .skip-link { left: auto; right: 16px; }
+[dir="rtl"] .status-tab { text-transform: none; }

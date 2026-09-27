@@ -8,6 +8,7 @@ namespace server.Data;
 public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     : IdentityDbContext<IdentityUser>(options)
 {
+    public DbSet<AccountSettings> AccountSettings => Set<AccountSettings>();
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripLink> TripLinks => Set<TripLink>();
     public DbSet<ItineraryItem> ItineraryItems => Set<ItineraryItem>();
@@ -20,6 +21,8 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<AccountSettings>().HasOne<IdentityUser>().WithOne()
+            .HasForeignKey<AccountSettings>(settings => settings.UserId).OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Trip>()
             .HasOne<IdentityUser>()

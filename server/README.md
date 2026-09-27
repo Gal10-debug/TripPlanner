@@ -78,3 +78,19 @@ trips receive `DateTimeOffset.UtcNow` on the server and return `createdAt` in tr
 API responses. The create/edit request DTOs do not accept creation timestamps;
 edits leave the original value unchanged. The migration runs at API startup,
 consistent with the existing migration workflow. Restart the server after updating.
+
+
+## Account settings
+
+`GET /api/settings`, `PUT /api/settings`, and `GET /api/settings/options` require
+authentication. Settings are keyed by the caller's Identity user ID; request fields
+cannot change the account email or select another user. Updates validate a display
+name of at most 100 characters, `en`/`he`, supported time zone IDs, and the supported
+currencies USD/EUR/GBP/ILS/JPY/CAD/AUD. The options endpoint supplies the currency
+and host-supported time zone lists. Defaults are English, UTC, and USD.
+
+`AddAccountSettings` adds a separate settings table with a cascading foreign key
+to Identity users. Existing trips, budgets, and accounts are preserved. New trip
+budgets use the creator's current default currency; previous trips do not change.
+The dashboard reminders endpoint uses the caller's time zone for its date window.
+Restart the API to apply the migration and register the new controller.

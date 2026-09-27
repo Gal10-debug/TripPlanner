@@ -77,7 +77,7 @@ export default defineConfig([
 ## Application routes
 
 The application uses React Router with browser history. Signed-in routes currently
-include `/dashboard`, `/trips`, `/trips/:tripId`, `/calendar`, and `/invitations`.
+include `/dashboard`, `/trips`, `/trips/:tripId`, `/calendar`, `/invitations`, and `/settings`.
 Each trip has a dedicated page with details, itinerary, packing, budget, weather,
 and sharing. Trip cards link to that page; browser Back returns to the previous
 page, and the All trips link provides a return path for direct visits. `/` redirects to the dashboard.
@@ -120,3 +120,29 @@ and selects its status so it is visible.
 New trips have server-recorded creation timestamps. Older trips have no recorded
 creation date; their original creation sequence is used for date-added sorting,
 before timestamped trips in oldest-first order (and after them in newest-first).
+
+
+## Account preferences and Hebrew
+
+`/settings` saves a display name, language (English or Hebrew), time zone, and
+default currency to the signed-in account. Email is shown read-only. Preferences
+are loaded at sign-in; saving applies them immediately, and logout resets the
+in-memory settings to prevent one account's preferences appearing in another.
+Defaults for accounts without saved settings are English, UTC, and USD.
+
+Hebrew switches the document to `lang="he"` and `dir="rtl"`, mirrors navigation
+and reading alignment, and localizes main interface labels and date/currency
+formatting. Email addresses, URLs, dates, and numeric controls remain LTR where
+appropriate. User-entered destinations, notes, and other trip content are not
+translated. Detailed validation messages supplied by the server can remain in
+English when no translation is defined. No browser was available for visual RTL
+QA; automated tests cover language/direction changes and localized flows.
+
+The selected time zone determines today, trip status, new expense dates, and
+reminder day calculations. Date-only trip/activity values and entered activity
+times remain unchanged. A default currency applies to newly created trips only;
+changing it does not convert existing budgets or expenses.
+
+Translations live in `src/i18n/he.ts`; `src/i18n/preferences.ts` holds the reactive
+in-memory preferences and formatting helpers. `App` subscribes to preference
+changes to re-render the interface. Missing translations fall back to English.

@@ -1,3 +1,4 @@
+import { t } from "../i18n/preferences";
 import { useState, type FormEvent } from "react";
 import { login, register, requestPasswordReset, resetPassword } from "../services/authServices";
 import type { User } from "../models/User";
@@ -75,25 +76,25 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
     return (
         <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-heading">
-                <span className="eyebrow">{mode === "login" ? "Welcome back" : mode === "register" ? "Join Wanderly" : "Account recovery"}</span>
-                <h2>{heading}</h2>
-                <p>{mode === "login" ? "Sign in to pick up where you left off." : mode === "register" ? "Create an account to save your plans in one place." : mode === "forgot" ? "Enter the email connected to your account." : "Use the reset code to secure your account with a new password."}</p>
+                <span className="eyebrow">{mode === "login" ? t("Welcome back") : mode === "register" ? t("Join Wanderly") : t("Account recovery")}</span>
+                <h2>{t(heading)}</h2>
+                <p>{mode === "login" ? t("Sign in to pick up where you left off.") : mode === "register" ? t("Create an account to save your plans in one place.") : mode === "forgot" ? t("Enter the email connected to your account.") : t("Use the reset code to secure your account with a new password.")}</p>
             </div>
 
-            <div className="field-group"><label htmlFor="email">Email address</label><input
+            <div className="field-group"><label htmlFor="email">{t("Email address")}</label><input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("you@example.com")}
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
             /></div>
 
-            {mode !== "forgot" && <div className="field-group"><label htmlFor="password">{mode === "reset" ? "New password" : "Password"}</label><input
+            {mode !== "forgot" && <div className="field-group"><label htmlFor="password">{mode === "reset" ? t("New password") : t("Password")}</label><input
                 id="password"
                 type="password"
-                placeholder="At least 8 characters"
+                placeholder={t("At least 8 characters")}
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
                 minLength={8}
                 value={password}
@@ -102,21 +103,21 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
             /></div>}
 
             {mode === "reset" && <>
-                <div className="field-group"><label htmlFor="confirm-password">Confirm new password</label><input id="confirm-password" type="password" placeholder="Enter it again" autoComplete="new-password" minLength={8} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>
-                <div className="field-group"><label htmlFor="reset-token">Reset code</label><textarea id="reset-token" value={resetToken} onChange={(event) => setResetToken(event.target.value)} required /></div>
+                <div className="field-group"><label htmlFor="confirm-password">{t("Confirm new password")}</label><input id="confirm-password" type="password" placeholder={t("Enter it again")} autoComplete="new-password" minLength={8} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required /></div>
+                <div className="field-group"><label htmlFor="reset-token">{t("Reset code")}</label><textarea id="reset-token" value={resetToken} onChange={(event) => setResetToken(event.target.value)} required /></div>
             </>}
 
-            {error && <p className="alert" role="alert">{error}</p>}
-            {message && <p className="success-message" role="status">{message}</p>}
+            {error && <p className="alert" role="alert">{t(error)}</p>}
+            {message && <p className="success-message" role="status">{t(message)}</p>}
 
             <button className="button button--primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Just a moment…" : mode === "login" ? "Sign in" : mode === "register" ? "Create my account" : mode === "forgot" ? "Send reset code" : "Update password"}
+                {isSubmitting ? t("Just a moment…") : mode === "login" ? t("Sign in") : mode === "register" ? t("Create my account") : mode === "forgot" ? t("Send reset code") : t("Update password")}
                 {!isSubmitting && <span aria-hidden="true">→</span>}
             </button>
-            {mode === "forgot" && <button className="forgot-password" type="button" onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>I already have a reset code</button>}
-            {mode === "reset" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setResetToken(""); setError(""); setMessage(""); }}>Request another reset code</button>}
-            {mode === "login" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setError(""); setMessage(""); }}>Forgot your password?</button>}
-            <p className="auth-switch">{mode === "login" ? "New to Wanderly?" : "Ready to sign in?"}<button type="button" onClick={switchMode}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>
+            {mode === "forgot" && <button className="forgot-password" type="button" onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>{t("I already have a reset code")}</button>}
+            {mode === "reset" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setResetToken(""); setError(""); setMessage(""); }}>{t("Request another reset code")}</button>}
+            {mode === "login" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setError(""); setMessage(""); }}>{t("Forgot your password?")}</button>}
+            <p className="auth-switch">{mode === "login" ? t("New to Wanderly?") : t("Ready to sign in?")}<button type="button" onClick={switchMode}>{mode === "login" ? t("Create an account") : t("Sign in")}</button></p>
         </form>
     );
 }

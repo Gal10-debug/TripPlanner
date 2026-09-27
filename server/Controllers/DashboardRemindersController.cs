@@ -17,7 +17,9 @@ public class DashboardRemindersController(TripPlannerContext context, ReminderSe
     [HttpGet]
     public async Task<ActionResult> GetUpcomingReminders()
     {
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var zoneId = await context.AccountSettings.Where(settings => settings.UserId == UserId)
+            .Select(settings => settings.TimeZone).FirstOrDefaultAsync() ?? "UTC";
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(zoneId)));
         var trips = await context.Trips
             .Where(trip => trip.EndDate >= today && (trip.UserId == UserId || context.TripMembers.Any(member => member.TripId == trip.Id && member.UserId == UserId)))
             .ToListAsync();

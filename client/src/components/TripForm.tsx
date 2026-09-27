@@ -1,3 +1,4 @@
+import { t } from "../i18n/preferences";
 import { useState } from "react";
 import { addTrip } from "../services/tripServices";
 import type { Trip } from "../models/Trip";
@@ -44,34 +45,30 @@ function TripForm({ onTripAdded }: TripFormProps) {
 
     return (
         <div>
-            <h2>Trip Form</h2>
+            <h2>{t("Trip Form")}</h2>
 
             <input
                 type="text"
-                placeholder="Destination"
+                placeholder={t("Destination")}
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
             />
 
             <input
                 type="text"
-                placeholder="Country"
+                placeholder={t("Country")}
                 value={country}
                 onChange={(e) => setCountry(e.target.value)}
             />
 
-            <label>
-                Start date
-                <input
+            <label>{t("Start date")}<input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                 />
             </label>
 
-            <label>
-                End date
-                <input
+            <label>{t("End date")}<input
                     type="date"
                     min={startDate}
                     value={endDate}
@@ -79,11 +76,9 @@ function TripForm({ onTripAdded }: TripFormProps) {
                 />
             </label>
 
-            {error && <p role="alert">{error}</p>}
+            {error && <p role="alert">{t(error)}</p>}
 
-            <button onClick={handleAddTrip}>
-                Add Trip
-            </button>
+            <button onClick={handleAddTrip}>{t("Add Trip")}</button>
         </div>
     );
 }

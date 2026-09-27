@@ -1,3 +1,4 @@
+import { t, getPreferences } from "../i18n/preferences";
 import { useState } from "react";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
 import ItineraryPanel from "./ItineraryPanel";
@@ -97,12 +98,12 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
     if (isEditing) {
         return (
             <article className="trip-card trip-card--editing">
-                <input aria-label="Destination" type="text" value={destination} onChange={(e) => setDestination(e.target.value)} />
-                <input aria-label="Country" type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
-                <label>Start date<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
-                <label>End date<input type="date" min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
-                {error && <p className="alert" role="alert">{error}</p>}
-                <div className="card-actions"><button onClick={handleUpdate} disabled={isSaving}>{isSaving ? "Saving…" : "Save"}</button><button className="secondary-action" onClick={cancelEditing} disabled={isSaving}>Cancel</button></div>
+                <input aria-label={t("Destination")} type="text" value={destination} onChange={(e) => setDestination(e.target.value)} />
+                <input aria-label={t("Country")} type="text" value={country} onChange={(e) => setCountry(e.target.value)} />
+                <label>{t("Start date")}<input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></label>
+                <label>{t("End date")}<input type="date" min={startDate} value={endDate} onChange={(e) => setEndDate(e.target.value)} /></label>
+                {error && <p className="alert" role="alert">{t(error)}</p>}
+                <div className="card-actions"><button onClick={handleUpdate} disabled={isSaving}>{isSaving ? t("Saving…") : t("Save")}</button><button className="secondary-action" onClick={cancelEditing} disabled={isSaving}>{t("Cancel")}</button></div>
             </article>
         );
     }
@@ -110,22 +111,22 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
     return (
         <article className="trip-card trip-card--open">
             <div className="trip-card__summary trip-page-summary">
-                <span className="trip-card__badges"><span className={`trip-status trip-status--${status}`}>{status}</span>{!isOwner && <span className="access-badge">Shared · {trip.accessRole}</span>}</span>
-                <span className="trip-card__dates">{formatDate(trip.startDate)} — {formatDate(trip.endDate)}<small>{trip.days} days</small></span>
+                <span className="trip-card__badges"><span className={`trip-status trip-status--${status}`}>{t(status)}</span>{!isOwner && <span className="access-badge">{t("Shared ·")}{" "}{t(trip.accessRole)}</span>}</span>
+                <span className="trip-card__dates">{formatDate(trip.startDate)} — {formatDate(trip.endDate)}<small>{trip.days}{" "}{t("days")}</small></span>
             </div>
             <div className="trip-details">
-                {error && !isEditingDetails && <p className="alert" role="alert">{error}</p>}
-                <div className="trip-details__heading"><div><span className="eyebrow">Trip details</span><h3>Everything in one place</h3></div>{!isEditingDetails && canEdit && <button className="text-action" onClick={() => { setDetails(detailsFromTrip(trip)); setIsEditingDetails(true); }}>Edit details</button>}</div>
+                {error && !isEditingDetails && <p className="alert" role="alert">{t(error)}</p>}
+                <div className="trip-details__heading"><div><span className="eyebrow">{t("Trip details")}</span><h3>{t("Everything in one place")}</h3></div>{!isEditingDetails && canEdit && <button className="text-action" onClick={() => { setDetails(detailsFromTrip(trip)); setIsEditingDetails(true); }}>{t("Edit details")}</button>}</div>
 
                 {isEditingDetails ? <div className="details-form">
-                    <label>Notes<textarea value={details.notes} onChange={e => setDetails({ ...details, notes: e.target.value })} placeholder="Ideas, reminders, and plans…" maxLength={4000} /></label>
-                    <div className="details-form__row"><label>Accommodation<input value={details.accommodationName} onChange={e => setDetails({ ...details, accommodationName: e.target.value })} placeholder="Hotel or rental name" /></label><label>Booking reference<input value={details.bookingReference} onChange={e => setDetails({ ...details, bookingReference: e.target.value })} placeholder="Confirmation number" /></label></div>
-                    <label>Accommodation address<input value={details.accommodationAddress} onChange={e => setDetails({ ...details, accommodationAddress: e.target.value })} placeholder="Street, city, country" /></label>
-                    <div className="links-editor"><div className="links-editor__heading"><strong>Useful links</strong><button type="button" className="text-action" onClick={() => setDetails(current => ({ ...current, usefulLinks: [...current.usefulLinks, { label: "", url: "" }] }))}>+ Add link</button></div>
-                        {details.usefulLinks.map((link, index) => <div className="link-row" key={index}><input aria-label="Link label" value={link.label} onChange={e => updateLink(index, "label", e.target.value)} placeholder="Airline, hotel…" /><input aria-label="Link URL" type="url" value={link.url} onChange={e => updateLink(index, "url", e.target.value)} placeholder="https://" /><button aria-label="Remove link" className="remove-link" onClick={() => setDetails(current => ({ ...current, usefulLinks: current.usefulLinks.filter((_, linkIndex) => linkIndex !== index) }))}>×</button></div>)}
+                    <label>{t("Notes")}<textarea value={details.notes} onChange={e => setDetails({ ...details, notes: e.target.value })} placeholder={t("Ideas, reminders, and plans…")} maxLength={4000} /></label>
+                    <div className="details-form__row"><label>{t("Accommodation")}<input value={details.accommodationName} onChange={e => setDetails({ ...details, accommodationName: e.target.value })} placeholder={t("Hotel or rental name")} /></label><label>{t("Booking reference")}<input value={details.bookingReference} onChange={e => setDetails({ ...details, bookingReference: e.target.value })} placeholder={t("Confirmation number")} /></label></div>
+                    <label>{t("Accommodation address")}<input value={details.accommodationAddress} onChange={e => setDetails({ ...details, accommodationAddress: e.target.value })} placeholder={t("Street, city, country")} /></label>
+                    <div className="links-editor"><div className="links-editor__heading"><strong>{t("Useful links")}</strong><button type="button" className="text-action" onClick={() => setDetails(current => ({ ...current, usefulLinks: [...current.usefulLinks, { label: "", url: "" }] }))}>{t("+ Add link")}</button></div>
+                        {details.usefulLinks.map((link, index) => <div className="link-row" key={index}><input aria-label={t("Link label")} value={link.label} onChange={e => updateLink(index, "label", e.target.value)} placeholder={t("Airline, hotel…")} /><input aria-label={t("Link URL")} type="url" value={link.url} onChange={e => updateLink(index, "url", e.target.value)} placeholder={t("https://")} /><button aria-label={t("Remove link")} className="remove-link" onClick={() => setDetails(current => ({ ...current, usefulLinks: current.usefulLinks.filter((_, linkIndex) => linkIndex !== index) }))}>×</button></div>)}
                     </div>
-                    {error && <p className="alert" role="alert">{error}</p>}
-                    <div className="card-actions"><button onClick={saveDetails} disabled={isSaving}>{isSaving ? "Saving…" : "Save details"}</button><button className="secondary-action" disabled={isSaving} onClick={() => { setIsEditingDetails(false); setError(""); }}>Cancel</button></div>
+                    {error && <p className="alert" role="alert">{t(error)}</p>}
+                    <div className="card-actions"><button onClick={saveDetails} disabled={isSaving}>{isSaving ? t("Saving…") : t("Save details")}</button><button className="secondary-action" disabled={isSaving} onClick={() => { setIsEditingDetails(false); setError(""); }}>{t("Cancel")}</button></div>
                 </div> : <DetailsView trip={trip} />}
 
                 {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} canEdit={canEdit} />}
@@ -133,7 +134,7 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
                 {!isEditingDetails && <BudgetPanel tripId={trip.id} canEdit={canEdit} />}
                 {!isEditingDetails && <WeatherRemindersPanel tripId={trip.id} startDate={trip.startDate} canEdit={canEdit} />}
                 {!isEditingDetails && <SharingPanel tripId={trip.id} />}
-                {!isEditingDetails && canEdit && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>Edit trip</button>{isOwner && <button className="text-action text-action--danger" disabled={isDeleting} onClick={handleDelete}>{isDeleting ? "Deleting…" : "Delete trip"}</button>}</div>}
+                {!isEditingDetails && canEdit && <div className="trip-card__footer"><button className="text-action" onClick={() => setIsEditing(true)}>{t("Edit trip")}</button>{isOwner && <button className="text-action text-action--danger" disabled={isDeleting} onClick={handleDelete}>{isDeleting ? t("Deleting…") : t("Delete trip")}</button>}</div>}
             </div>
         </article>
     );
@@ -142,12 +143,12 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
 function DetailsView({ trip }: { trip: Trip }) {
     const usefulLinks = trip.usefulLinks ?? [];
     const hasDetails = trip.notes || trip.accommodationName || trip.accommodationAddress || trip.bookingReference || usefulLinks.length > 0;
-    if (!hasDetails) return <div className="details-empty"><span>⌁</span><p>No details yet. Add notes, a stay, booking references, or useful links.</p></div>;
+    if (!hasDetails) return <div className="details-empty"><span>⌁</span><p>{t("No details yet. Add notes, a stay, booking references, or useful links.")}</p></div>;
     return <div className="details-view">
-        {trip.notes && <section className="detail-block detail-block--wide"><small>Notes</small><p>{trip.notes}</p></section>}
-        {(trip.accommodationName || trip.accommodationAddress) && <section className="detail-block"><small>Accommodation</small><strong>{trip.accommodationName}</strong><p>{trip.accommodationAddress}</p></section>}
-        {trip.bookingReference && <section className="detail-block"><small>Booking reference</small><strong>{trip.bookingReference}</strong></section>}
-        {usefulLinks.length > 0 && <section className="detail-block detail-block--wide"><small>Useful links</small><div className="saved-links">{usefulLinks.map(link => <a key={link.id} href={link.url} target="_blank" rel="noreferrer">{link.label}<span>↗</span></a>)}</div></section>}
+        {trip.notes && <section className="detail-block detail-block--wide"><small>{t("Notes")}</small><p>{trip.notes}</p></section>}
+        {(trip.accommodationName || trip.accommodationAddress) && <section className="detail-block"><small>{t("Accommodation")}</small><strong>{trip.accommodationName}</strong><p>{trip.accommodationAddress}</p></section>}
+        {trip.bookingReference && <section className="detail-block"><small>{t("Booking reference")}</small><strong>{trip.bookingReference}</strong></section>}
+        {usefulLinks.length > 0 && <section className="detail-block detail-block--wide"><small>{t("Useful links")}</small><div className="saved-links">{usefulLinks.map(link => <a key={link.id} href={link.url} target="_blank" rel="noreferrer">{link.label}<span>↗</span></a>)}</div></section>}
     </div>;
 }
 
@@ -156,7 +157,7 @@ function detailsFromTrip(trip: Trip): TripDetailsRequest {
 }
 
 function formatDate(date: string) {
-    return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${date}T00:00:00`));
+    return new Intl.DateTimeFormat(getPreferences().language, { month: "short", day: "numeric", year: "numeric" }).format(new Date(`${date}T00:00:00`));
 }
 
 export default TripDetails;

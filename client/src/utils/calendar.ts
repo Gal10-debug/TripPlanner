@@ -1,3 +1,4 @@
+import { getPreferences } from "../i18n/preferences";
 // Date keys are calendar dates, not UTC instants. Keep local dates intact across time zones.
 export function localDateKey(date = new Date()) {
     return `${String(date.getFullYear()).padStart(4, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -28,5 +29,5 @@ export function calendarDate(date: string): Date {
 }
 
 export function formatCalendarDate(date: string): string {
-    return new Intl.DateTimeFormat("en", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(calendarDate(date));
+    return new Intl.DateTimeFormat(getPreferences().language, { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(calendarDate(date));
 }

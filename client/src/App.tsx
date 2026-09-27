@@ -1,3 +1,6 @@
+import { t, defaultPreferences, setPreferences, todayKey, usePreferences } from "./i18n/preferences";
+import { getSettings } from "./services/settingsServices";
+import SettingsPage from "./pages/SettingsPage";
 import { Link, NavLink, Navigate, Route, Routes } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/tripServices";
@@ -16,6 +19,9 @@ import DepartureAlerts from "./components/DepartureAlerts";
 import "./App.css";
 
 function App() {
+  const preferences = usePreferences();
+  const [settingsError, setSettingsError] = useState("");
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(true);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoadingTrips, setIsLoadingTrips] = useState(true);
   const [tripsError, setTripsError] = useState("");
@@ -23,11 +29,12 @@ function App() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [error, setError] = useState("");
 
+  const today = todayKey();
   const tripsByStatus = useMemo(() => ({
-    current: sortTripsByStatus(trips, "current"),
-    upcoming: sortTripsByStatus(trips, "upcoming"),
-    completed: sortTripsByStatus(trips, "completed")
-  }), [trips]);
+    current: sortTripsByStatus(trips, "current", today),
+    upcoming: sortTripsByStatus(trips, "upcoming", today),
+    completed: sortTripsByStatus(trips, "completed", today)
+  }), [trips, today]);
 
   const refreshTrips = useCallback(async () => {
     setIsLoadingTrips(true);
@@ -61,6 +68,9 @@ function App() {
     }
 
     let cancelled = false;
+    getSettings().then(settings => { if (!cancelled) setPreferences(settings); })
+      .catch(() => { if (!cancelled) setSettingsError("Unable to load preferences. Open Settings to retry."); })
+      .finally(() => { if (!cancelled) setIsLoadingPreferences(false); });
     getTrips()
       .then(loadedTrips => { if (!cancelled) setTrips(loadedTrips); })
       .catch(loadError => { if (!cancelled) setTripsError(loadError instanceof Error ? loadError.message : "Failed to load trips."); })
@@ -99,39 +109,42 @@ function App() {
       setIsLoadingTrips(true);
       setTripsError("");
       setUser(null);
+      setPreferences(defaultPreferences);
+      setIsLoadingPreferences(true);
+      setSettingsError("");
       setError("");
     } catch (logoutError) {
       setError(logoutError instanceof Error ? logoutError.message : "Failed to log out.");
     }
   }
 
-  if (isCheckingSession) {
-    return <main className="loading-screen"><div className="brand-mark" aria-hidden="true">✦</div><p>Preparing your next adventure…</p></main>;
+  if (isCheckingSession || (user && isLoadingPreferences)) {
+    return <main className="loading-screen"><div className="brand-mark" aria-hidden="true">✦</div><p>{t("Preparing your next adventure…")}</p></main>;
   }
 
   if (!user) {
     return (
       <main className="welcome-page">
         <section className="welcome-hero">
-          <div className="brand"><span className="brand-mark" aria-hidden="true">✦</span><span>Wanderly</span></div>
+          <div className="brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></div>
           <div className="hero-copy">
-            <span className="eyebrow">Your journey starts here</span>
-            <h1>Dream it.<br /><em>Plan it.</em> Go.</h1>
-            <p>Keep every destination, date, and detail together—so you can spend less time organizing and more time exploring.</p>
+            <span className="eyebrow">{t("Your journey starts here")}</span>
+            <h1>{t("Dream it.")}<br /><em>{t("Plan it.")}</em>{" "}{t("Go.")}</h1>
+            <p>{t("Keep every destination, date, and detail together—so you can spend less time organizing and more time exploring.")}</p>
           </div>
           <div className="destination-card" aria-hidden="true">
             <div className="destination-card__image"><span className="sun" /><span className="mountain mountain--back" /><span className="mountain mountain--front" /></div>
-            <div className="destination-card__content"><div><span>Featured escape</span><strong>Amalfi Coast, Italy</strong></div><span className="destination-arrow">↗</span></div>
+            <div className="destination-card__content"><div><span>{t("Featured escape")}</span><strong>{t("Amalfi Coast, Italy")}</strong></div><span className="destination-arrow">↗</span></div>
           </div>
-          <p className="hero-note">Plan simply. Travel beautifully.</p>
+          <p className="hero-note">{t("Plan simply. Travel beautifully.")}</p>
         </section>
         <section className="welcome-panel">
           <div className="auth-shell">
-            <div className="mobile-brand"><span className="brand-mark" aria-hidden="true">✦</span><span>Wanderly</span></div>
-            {error && <p className="alert" role="alert">{error}</p>}
+            <div className="mobile-brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></div>
+            {error && <p className="alert" role="alert">{t(error)}</p>}
             <AuthForm onAuthenticated={setUser} />
           </div>
-          <p className="auth-footer">Adventure is waiting.</p>
+          <p className="auth-footer">{t("Adventure is waiting.")}</p>
         </section>
       </main>
     );
@@ -139,38 +152,41 @@ function App() {
 
   return (
     <div className="dashboard app-layout">
-      <a className="skip-link" href="#page-content">Skip to content</a>
+      <a className="skip-link" href="#page-content">{t("Skip to content")}</a>
       <header className="dashboard-header">
-        <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>Wanderly</span></Link>
-        <div className="account-actions"><span>{user.email}</span><button className="button button--ghost" onClick={handleLogout}>Log out</button></div>
+        <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></Link>
+        <div className="account-actions"><span>{preferences.displayName || user.email}</span><button className="button button--ghost" onClick={handleLogout}>{t("Log out")}</button></div>
       </header>
-      <nav className="app-navigation" aria-label="Main navigation">
-        <NavLink to="/dashboard">Dashboard</NavLink>
-        <NavLink to="/trips">Trips</NavLink>
-        <NavLink to="/calendar">Calendar</NavLink>
-        <NavLink to="/invitations">Invitations</NavLink>
+      <nav className="app-navigation" aria-label={t("Main navigation")}>
+        <NavLink to="/dashboard">{t("Dashboard")}</NavLink>
+        <NavLink to="/trips">{t("Trips")}</NavLink>
+        <NavLink to="/calendar">{t("Calendar")}</NavLink>
+        <NavLink to="/invitations">{t("Invitations")}</NavLink>
+        <NavLink to="/settings">{t("Settings")}</NavLink>
       </nav>
       <main id="page-content" className="dashboard-content" tabIndex={-1}>
-        {error && <p className="alert" role="alert">{error}</p>}
+        {error && <p className="alert" role="alert">{t(error)}</p>}
+        {settingsError && <p role="alert">{t(settingsError)} <Link to="/settings" onClick={() => setSettingsError("")}>{t("Settings")}</Link></p>}
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<>
-            <PageHeading title="Where to next?" description="Your journeys at a glance." />
+            <PageHeading title={t("Where to next?")} description={t("Your journeys at a glance.")} />
             <DepartureAlerts />
-            {tripsError && <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>Retry loading trips</button></div>}
+            {tripsError && <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>{t("Retry loading trips")}</button></div>}
             <div className="journey-overview">
-              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to={`/trips?status=${status}`}><strong>{tripsByStatus[status].length}</strong><span>{status} trips</span></Link>)}
+              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to={`/trips?status=${status}`}><strong>{tripsByStatus[status].length}</strong><span>{t(status)}{" "}{t("trips")}</span></Link>)}
             </div>
-            <Link className="button" to="/trips">Plan your next trip</Link>
+            <Link className="button" to="/trips">{t("Plan your next trip")}</Link>
           </>} />
           <Route path="/trips" element={<TripsPage trips={trips} isLoading={isLoadingTrips} error={tripsError} onRetry={refreshTrips} onTripAdded={trip => setTrips(currentTrips => [...currentTrips, trip])} />} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/invitations" element={<>
-            <PageHeading title="Invitations" description="Manage invitations to journeys with friends and family." />
+            <PageHeading title={t("Invitations")} description={t("Manage invitations to journeys with friends and family.")} />
             <InvitationsPanel onAccepted={refreshTrips} />
           </>} />
-          <Route path="*" element={<><PageHeading title="Page not found" description="This address does not match a page." /><Link to="/dashboard">Return to dashboard</Link></>} />
+          <Route path="*" element={<><PageHeading title={t("Page not found")} description={t("This address does not match a page.")} /><Link to="/dashboard">{t("Return to dashboard")}</Link></>} />
         </Routes>
       </main>
     </div>
@@ -178,7 +194,7 @@ function App() {
 }
 
 function PageHeading({ title, description }: { title: string; description: string }) {
-  return <div className="dashboard-intro"><span className="eyebrow">My journeys</span><h1>{title}</h1><p>{description}</p></div>;
+  return <div className="dashboard-intro"><span className="eyebrow">{t("My journeys")}</span><h1>{t(title)}</h1><p>{t(description)}</p></div>;
 }
 
 export default App;

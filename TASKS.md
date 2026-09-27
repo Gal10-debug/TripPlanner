@@ -36,13 +36,20 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Additive nullable-column migration preserves existing trip data; timestamps cannot be changed through trip create/edit requests.
    - 55 frontend tests and 25 server tests pass, along with frontend build/lint.
    - Local API restarted with the updated migration. Browser visual verification remains pending.
-6. Settings: profile, language, timezone, default currency; Hebrew translations and RTL.
+6. Account settings and preferences — implemented on `feature/account-preferences` (based on step 5).
+   - `/settings` saves display name, English/Hebrew, time zone, and default currency per authenticated account; account email is displayed read-only.
+   - Preferences load at sign-in, persist across sessions, and reset in memory at logout.
+   - Hebrew labels across the main screens, document language/direction, RTL layout, and localized date/currency formatting. User-entered content stays unchanged; detailed server validation messages can fall back to English.
+   - Preferred time zone drives today, trip status, expense default date, and reminder day calculations. Trip calendar dates and itinerary clock times are not converted.
+   - Currency preference initializes new trip budgets; existing budgets and expenses retain their currency.
+   - 66 frontend tests and 32 backend tests, build, and lint pass. Account isolation, persistence, validation, RTL switching, and currency preservation are covered.
+   - AddAccountSettings migration adds a separate per-user table. Local API restarted after the migration; visual RTL verification remains pending because no browser is connected.
 7. Notification center and due-reminder delivery; configurable notification channels.
 8. Destination maps, directions, accommodation links, and activity locations.
 9. Trip export and print with addresses, bookings, activities, and packing list.
 10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.
 
-Add Budget and Settings navigation entries when their corresponding pages are functional.
+Add a Budget navigation entry when its cross-trip page is functional.
 
 ## Deployment requirement
 
