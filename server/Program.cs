@@ -14,6 +14,9 @@ builder.Services.AddDbContext<TripPlannerContext>(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TripAccessService>();
 builder.Services.AddScoped<ReminderService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddHostedService<NotificationWorker>();
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
 builder.Services.AddTransient<IPasswordResetEmailSender, PasswordResetEmailSender>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>

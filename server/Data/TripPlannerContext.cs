@@ -8,6 +8,7 @@ namespace server.Data;
 public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     : IdentityDbContext<IdentityUser>(options)
 {
+    public DbSet<UserNotification> UserNotifications => Set<UserNotification>();
     public DbSet<AccountSettings> AccountSettings => Set<AccountSettings>();
     public DbSet<Trip> Trips => Set<Trip>();
     public DbSet<TripLink> TripLinks => Set<TripLink>();
@@ -21,6 +22,9 @@ public class TripPlannerContext(DbContextOptions<TripPlannerContext> options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<UserNotification>().HasIndex(n => new { n.UserId, n.ReminderId, n.DueDate }).IsUnique();
+        modelBuilder.Entity<UserNotification>().HasOne<IdentityUser>().WithMany().HasForeignKey(n => n.UserId).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<UserNotification>().HasOne<TripReminder>().WithMany().HasForeignKey(n => n.ReminderId).OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<AccountSettings>().HasOne<IdentityUser>().WithOne()
             .HasForeignKey<AccountSettings>(settings => settings.UserId).OnDelete(DeleteBehavior.Cascade);
 

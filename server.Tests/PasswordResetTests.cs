@@ -159,7 +159,8 @@ internal sealed class ResetApplication(string environment = "Production", bool e
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ConnectionStrings:TripPlanner"] = $"Data Source={databasePath};Pooling=False",
-            ["Logging:LogLevel:Default"] = "Error"
+            ["Logging:LogLevel:Default"] = "Error",
+            ["Notifications:DisableWorker"] = "true"
         }));
         builder.ConfigureTestServices(services =>
         {

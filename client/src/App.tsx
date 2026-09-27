@@ -1,3 +1,4 @@
+import NotificationsPage, { NotificationProvider, NotificationLink } from "./components/Notifications";
 import { t, defaultPreferences, setPreferences, todayKey, usePreferences } from "./i18n/preferences";
 import { getSettings } from "./services/settingsServices";
 import SettingsPage from "./pages/SettingsPage";
@@ -151,11 +152,11 @@ function App() {
   }
 
   return (
-    <div className="dashboard app-layout">
+    <NotificationProvider key={user.email}><div className="dashboard app-layout">
       <a className="skip-link" href="#page-content">{t("Skip to content")}</a>
       <header className="dashboard-header">
         <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></Link>
-        <div className="account-actions"><span>{preferences.displayName || user.email}</span><button className="button button--ghost" onClick={handleLogout}>{t("Log out")}</button></div>
+        <div className="account-actions"><NotificationLink /><span>{preferences.displayName || user.email}</span><button className="button button--ghost" onClick={handleLogout}>{t("Log out")}</button></div>
       </header>
       <nav className="app-navigation" aria-label={t("Main navigation")}>
         <NavLink to="/dashboard">{t("Dashboard")}</NavLink>
@@ -180,6 +181,7 @@ function App() {
           </>} />
           <Route path="/trips" element={<TripsPage trips={trips} isLoading={isLoadingTrips} error={tripsError} onRetry={refreshTrips} onTripAdded={trip => setTrips(currentTrips => [...currentTrips, trip])} />} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/invitations" element={<>
@@ -189,7 +191,7 @@ function App() {
           <Route path="*" element={<><PageHeading title={t("Page not found")} description={t("This address does not match a page.")} /><Link to="/dashboard">{t("Return to dashboard")}</Link></>} />
         </Routes>
       </main>
-    </div>
+    </div></NotificationProvider>
   );
 }
 

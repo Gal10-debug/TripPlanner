@@ -94,3 +94,13 @@ to Identity users. Existing trips, budgets, and accounts are preserved. New trip
 budgets use the creator's current default currency; previous trips do not change.
 The dashboard reminders endpoint uses the caller's time zone for its date window.
 Restart the API to apply the migration and register the new controller.
+
+## Reminder notifications
+
+The API runs a notification check at startup and every minute. Keep the API running to deliver reminders while users are away. Due dates use the recipient's saved time zone (UTC by default); overdue incomplete reminders are included until the trip ends. Owned and shared trips are supported. The additive `AddNotifications` migration runs at startup.
+
+`GET /api/notifications`, `PUT /api/notifications/{id}/read`, and `PUT /api/notifications/read-all` require authentication and current trip access. Completing or rescheduling a reminder removes its old notification from the visible center. Read status is per account. Database uniqueness makes recurring notification inserts idempotent; default reminder generation is serialized within a single API process. This SQLite deployment expects one API instance.
+
+The client polls every minute, so a new reminder can take up to two polling intervals to display. Browser alerts are opt-in per session and use a service worker, Web Locks, and local storage to suppress repeat alerts in the same browser. They require HTTPS (or localhost), browser support and granted permission, and an open app. Serve `/notifications-sw.js` as JavaScript from the frontend origin. Clearing site storage resets browser suppression. No web-push subscription or email reminder delivery is implemented in this phase; SMTP remains dedicated to password reset.
+
+Tests disable the hosted worker with `Notifications:DisableWorker=true` and exercise generation directly with a fixed clock.

@@ -44,7 +44,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Currency preference initializes new trip budgets; existing budgets and expenses retain their currency.
    - 66 frontend tests and 32 backend tests, build, and lint pass. Account isolation, persistence, validation, RTL switching, and currency preservation are covered.
    - AddAccountSettings migration adds a separate per-user table. Local API restarted after the migration; visual RTL verification remains pending because no browser is connected.
-7. Notification center and due-reminder delivery; configurable notification channels.
+7. Notification center and due-reminder delivery — implemented on `feature/notifications` (based on step 6).
+   - `/notifications` with a header unread count, trip links, individual/all read controls, loading, empty, and retry states; English/Hebrew labels.
+   - A background check every minute creates persistent notifications for incomplete due reminders on active owned/shared trips, using each recipient’s time zone.
+   - Unique database keys prevent repeated delivery records. Completed/rescheduled reminders and revoked trip access are filtered from the center.
+   - Optional browser alerts enabled explicitly for the current session, with service-worker click-through and cross-tab duplicate prevention. Requires browser support, HTTPS/localhost, and an open app; this is not closed-app push.
+   - Email reminders and persistent account-wide channel preferences remain the later channel expansion; existing SMTP remains for password reset only.
+   - 71 frontend tests and 34 backend tests, build, and lint pass. Local API restarted; migration, authenticated endpoint protection, and service-worker asset verified. Browser visual/native notification verification remains pending because no browser is connected.
 8. Destination maps, directions, accommodation links, and activity locations.
 9. Trip export and print with addresses, bookings, activities, and packing list.
 10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.

@@ -456,3 +456,12 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 [dir="rtl"] .hero-note { right: auto; left: 40px; }
 [dir="rtl"] .skip-link { left: auto; right: 16px; }
 [dir="rtl"] .status-tab { text-transform: none; }
+
+.notification-link { color: var(--ink, #193c34); font-size: 14px; }
+.notification-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 24px; }
+.notification-controls p { flex-basis: 100%; }
+.notification-list { list-style: none; padding: 0; display: grid; gap: 12px; }
+.notification-list li { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 24px; background: #fffdf9; border: 1px solid #dfe5e1; border-radius: 16px; }
+.notification-list li.notification-unread { border-inline-start: 4px solid #d96645; }
+.notification-list p { margin: 8px 0; }
+@media (max-width: 600px) { .account-actions { flex-wrap: wrap; } .notification-list li { align-items: flex-start; flex-direction: column; } }
