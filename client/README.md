@@ -77,7 +77,7 @@ export default defineConfig([
 ## Application routes
 
 The application uses React Router with browser history. Signed-in routes currently
-include `/dashboard`, `/trips`, `/trips/:tripId`, and `/invitations`.
+include `/dashboard`, `/trips`, `/trips/:tripId`, `/calendar`, and `/invitations`.
 Each trip has a dedicated page with details, itinerary, packing, budget, weather,
 and sharing. Trip cards link to that page; browser Back returns to the previous
 page, and the All trips link provides a return path for direct visits. `/` redirects to the dashboard.
@@ -88,3 +88,18 @@ routes, preserving static assets and `/api/*` requests. Otherwise, refreshing or
 opening a page URL directly may return a server 404. Vite handles this in development.
 
 Run routing regression tests with `npm test`.
+
+
+## Monthly calendar
+
+`/calendar` combines owned and shared trips and itinerary activities. Use the month
+picker, previous/next buttons, or Today to navigate. Select a date to see all trips
+and activities for that day, including destinations and activity locations. Agenda
+links open the relevant trip page. Mobile uses compact day counts with the full
+agenda below the calendar.
+
+The URL records the month and selected date, for example
+`/calendar?month=2026-09&day=2026-09-27`, so browser Back restores the same view.
+Date-only values remain on their saved calendar day; activity times are displayed
+as entered in the itinerary, without conversion between destination time zones.
+The server supplies the month through `GET /api/calendar?month=YYYY-MM`.

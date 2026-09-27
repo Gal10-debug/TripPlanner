@@ -5,6 +5,7 @@ import TripForm from "./components/TripForm";
 import type { Trip, TripDetailsRequest } from "./models/Trip";
 import TripCard from "./components/TripCard";
 import TripPage from "./pages/TripPage";
+import CalendarPage from "./pages/CalendarPage";
 import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
@@ -149,6 +150,7 @@ function App() {
       <nav className="app-navigation" aria-label="Main navigation">
         <NavLink to="/dashboard">Dashboard</NavLink>
         <NavLink to="/trips">Trips</NavLink>
+        <NavLink to="/calendar">Calendar</NavLink>
         <NavLink to="/invitations">Invitations</NavLink>
       </nav>
       <main id="page-content" className="dashboard-content" tabIndex={-1}>
@@ -179,6 +181,7 @@ function App() {
         </div>
           </>} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
+          <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/invitations" element={<>
             <PageHeading title="Invitations" description="Manage invitations to journeys with friends and family." />
             <InvitationsPanel onAccepted={refreshTrips} />

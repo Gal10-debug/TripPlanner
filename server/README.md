@@ -55,3 +55,16 @@ missing SMTP configuration, delivery failures, and the development shortcut.
 
 Frontend regression checks: `npm --prefix client test`,
 `npm --prefix client run build`, and `npm --prefix client run lint`.
+
+
+## Monthly calendar API
+
+`GET /api/calendar?month=YYYY-MM` requires authentication and returns `trips` and
+`activities` arrays. Trips overlap the requested month inclusively; activities
+are restricted to dates in that month, sorted by date and time. Both queries
+include only trips owned by the current user or shared with them. Viewer and
+Editor memberships may both read the calendar; revoked memberships stop appearing
+on the next request. Invalid or missing months return HTTP 400.
+
+Calendar integration tests cover access control, revoked sharing, month boundaries,
+cross-year trips, leap days, invalid parameters, and empty months.

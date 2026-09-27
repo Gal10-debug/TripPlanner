@@ -5,8 +5,10 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import App from './App';
 import { getTrips, deleteTrip, updateTrip, updateTripDetails } from './services/tripServices';
 import type { Trip } from './models/Trip';
+import { getCalendarMonth } from './services/calendarServices';
 import { getCurrentUser } from './services/authServices';
 
+vi.mock('./services/calendarServices', () => ({ getCalendarMonth: vi.fn() }));
 vi.mock('./services/authServices', () => ({ getCurrentUser: vi.fn(), logout: vi.fn() }));
 vi.mock('./services/tripServices', () => ({ getTrips: vi.fn(), deleteTrip: vi.fn(), updateTrip: vi.fn(), updateTripDetails: vi.fn() }));
 vi.mock('./components/DepartureAlerts', () => ({ default: () => <p>Departure alerts</p> }));
@@ -54,7 +56,7 @@ it('provides a recovery link for unknown routes', async () => {
   expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeTruthy();
   expect(screen.getByRole('link', { name: 'Return to dashboard' }).getAttribute('href')).toBe('/dashboard');
 });
-it.each(['/trips', '/trips/123'])('requires authentication on direct page access to %s', async path => {
+it.each(['/trips', '/trips/123', '/calendar'])('requires authentication on direct page access to %s', async path => {
   vi.mocked(getCurrentUser).mockResolvedValue(null);
   open(path);
   expect(await screen.findByText('Adventure is waiting.')).toBeTruthy();
@@ -144,4 +146,11 @@ it.each(['Viewer', 'Editor'] as const)('preserves %s permissions on the trip pag
   expect(Boolean(screen.queryByRole('button', { name: 'Edit trip' }))).toBe(accessRole === 'Editor');
   expect(Boolean(screen.queryByRole('button', { name: 'Edit details' }))).toBe(accessRole === 'Editor');
   expect(screen.getByText(`Itinerary 123 ${accessRole === 'Editor' ? 'editable' : 'read only'}`)).toBeTruthy();
+});
+
+it('opens the calendar route and marks the navigation link active', async () => {
+  vi.mocked(getCalendarMonth).mockResolvedValue({ trips: [], activities: [] });
+  open('/calendar?month=2026-09');
+  expect(await screen.findByRole('table', { name: 'September 2026' })).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Calendar' }).getAttribute('aria-current')).toBe('page');
 });

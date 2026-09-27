@@ -21,7 +21,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - 28 frontend tests, frontend build/lint, and 10 server integration tests pass.
    - Deployment still needs SMTP credentials and a verified sender; see `server/README.md`. Live email delivery has not been verified.
    - Existing NuGet audit warnings remain for Microsoft.OpenApi 2.0.0 and SQLitePCLRaw.lib.e_sqlite3 2.1.11; dependency remediation is separate from these fixes.
-4. Monthly calendar combining trips and itinerary activities.
+4. Monthly calendar — implemented on `feature/monthly-calendar` (based on step 3).
+   - `/calendar` navigation on desktop and mobile; month/year navigation, month picker, Today, and a selected-day agenda.
+   - Owned/shared trip spans and itinerary activities use one access-controlled monthly endpoint.
+   - Month and selected day stay in the URL, preserving context when returning from trip links.
+   - Date-only handling, leap years, cross-month/year spans, loading, retry, empty states, and obsolete-request cancellation.
+   - 40 frontend tests, frontend build/lint, and 23 backend integration tests pass.
+   - Browser visual verification remains pending because no browser is available.
 5. Destination/country search and sorting by start date, duration, and creation date.
 6. Settings: profile, language, timezone, default currency; Hebrew translations and RTL.
 7. Notification center and due-reminder delivery; configurable notification channels.
@@ -29,7 +35,7 @@ Work incrementally on local feature branches. Do not push or merge without a req
 9. Trip export and print with addresses, bookings, activities, and packing list.
 10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.
 
-Add Calendar, Budget, and Settings navigation entries when their corresponding pages are functional.
+Add Budget and Settings navigation entries when their corresponding pages are functional.
 
 ## Deployment requirement
 
