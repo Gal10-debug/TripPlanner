@@ -146,3 +146,11 @@ changing it does not convert existing budgets or expenses.
 Translations live in `src/i18n/he.ts`; `src/i18n/preferences.ts` holds the reactive
 in-memory preferences and formatting helpers. `App` subscribes to preference
 changes to re-render the interface. Missing translations fall back to English.
+
+## Destination maps
+
+Trip details include an on-demand destination map. The browser queries [Open-Meteo geocoding](https://open-meteo.com/en/docs/geocoding-api) using destination, country and interface language, then embeds [OpenStreetMap](https://wiki.openstreetmap.org/wiki/Export). Multiple matches require a selection; the selection is local to the current page. Attribution links identify OpenStreetMap, Open-Meteo and GeoNames.
+
+Destination, accommodation and itinerary links use [Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started) with encoded search/directions parameters. Only place text is included, never booking references or notes. Directions let Google Maps determine the origin. Accommodation and activity locations open externally rather than appearing as additional pins on the destination map.
+
+The current public geocoding endpoint needs no key; review Open-Meteo's usage terms before commercial deployment. A production content-security policy must allow connections to `https://geocoding-api.open-meteo.com` and frames from `https://www.openstreetmap.org`. Map rendering requires internet access; external map links remain available after lookup failures. No backend or schema changes are needed.

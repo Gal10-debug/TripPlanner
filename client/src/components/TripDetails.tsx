@@ -1,3 +1,4 @@
+import DestinationMap from "./DestinationMap";
 import { t, getPreferences } from "../i18n/preferences";
 import { useState } from "react";
 import type { Trip, TripDetailsRequest } from "../models/Trip";
@@ -129,7 +130,8 @@ function TripDetails({ trip, status, onDelete, onUpdate, onUpdateDetails }: Trip
                     <div className="card-actions"><button onClick={saveDetails} disabled={isSaving}>{isSaving ? t("Saving…") : t("Save details")}</button><button className="secondary-action" disabled={isSaving} onClick={() => { setIsEditingDetails(false); setError(""); }}>{t("Cancel")}</button></div>
                 </div> : <DetailsView trip={trip} />}
 
-                {!isEditingDetails && <ItineraryPanel tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} canEdit={canEdit} />}
+                {!isEditingDetails && <DestinationMap trip={trip} />}
+                {!isEditingDetails && <ItineraryPanel destination={trip.destination} country={trip.country} tripId={trip.id} startDate={trip.startDate} endDate={trip.endDate} canEdit={canEdit} />}
                 {!isEditingDetails && <PackingPanel tripId={trip.id} canEdit={canEdit} />}
                 {!isEditingDetails && <BudgetPanel tripId={trip.id} canEdit={canEdit} />}
                 {!isEditingDetails && <WeatherRemindersPanel tripId={trip.id} startDate={trip.startDate} canEdit={canEdit} />}

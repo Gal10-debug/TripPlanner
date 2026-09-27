@@ -51,7 +51,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Optional browser alerts enabled explicitly for the current session, with service-worker click-through and cross-tab duplicate prevention. Requires browser support, HTTPS/localhost, and an open app; this is not closed-app push.
    - Email reminders and persistent account-wide channel preferences remain the later channel expansion; existing SMTP remains for password reset only.
    - 71 frontend tests and 34 backend tests, build, and lint pass. Local API restarted; migration, authenticated endpoint protection, and service-worker asset verified. Browser visual/native notification verification remains pending because no browser is connected.
-8. Destination maps, directions, accommodation links, and activity locations.
+8. Destination maps and directions — implemented on `feature/destination-maps` (based on step 7).
+   - Each trip has an expandable OpenStreetMap destination map, with Open-Meteo/GeoNames location lookup and a chooser for ambiguous results.
+   - Google Maps search and directions for destinations, saved accommodation names/addresses, and itinerary activities with locations. Available to shared-trip viewers as well as editors.
+   - Encoded place queries, labeled responsive map, English/Hebrew controls, loading, timeout/retry, no-match guidance, and external links when embedding is unavailable.
+   - Changes to destination/country reset the map; obsolete lookups are canceled. Booking references and notes are excluded from map requests.
+   - 78 frontend tests, build, and lint pass. Live public destination lookup verified. Visual map verification remains pending because no browser is connected.
+   - No new dependency, API key, or database migration. Activity/accommodation links open external searches; their pins are not overlaid on the embedded destination map.
 9. Trip export and print with addresses, bookings, activities, and packing list.
 10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.
 

@@ -1,9 +1,12 @@
+import { directionsUrl, mapSearchUrl, placeQuery } from "../utils/maps";
 import { t, getPreferences } from "../i18n/preferences";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { ItineraryItem, ItineraryItemRequest } from "../models/ItineraryItem";
 import { addItineraryItem, deleteItineraryItem, getItinerary, updateItineraryItem } from "../services/itineraryServices";
 
 interface ItineraryPanelProps {
+    destination?: string;
+    country?: string;
     tripId: number;
     startDate: string;
     endDate: string;
@@ -12,7 +15,7 @@ interface ItineraryPanelProps {
 
 const emptyItem = (date: string): ItineraryItemRequest => ({ title: "", date, time: "09:00", location: "", note: "" });
 
-function ItineraryPanel({ tripId, startDate, endDate, canEdit }: ItineraryPanelProps) {
+function ItineraryPanel({ destination, country, tripId, startDate, endDate, canEdit }: ItineraryPanelProps) {
     const [items, setItems] = useState<ItineraryItem[]>([]);
     const [draft, setDraft] = useState<ItineraryItemRequest>(() => emptyItem(startDate));
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -102,7 +105,7 @@ function ItineraryPanel({ tripId, startDate, endDate, canEdit }: ItineraryPanelP
                 <div className="day-label"><span>{t("Day")}{" "}{daysBetween(startDate, date) + 1}</span><strong>{formatDay(date)}</strong></div>
                 <div className="day-timeline">{dayItems.map(item => <article className="activity-item" key={item.id}>
                     <time>{formatTime(item.time)}</time><span className="timeline-dot" aria-hidden="true" />
-                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <span>⌖ {item.location}</span>}{item.note && <p>{item.note}</p>}{canEdit && <div className="activity-actions"><button onClick={() => editItem(item)}>{t("Edit")}</button><button onClick={() => removeItem(item.id)}>{t("Delete")}</button></div>}</div>
+                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <><span>⌖ {item.location}</span><div className="map-links"><a href={mapSearchUrl(placeQuery(item.location, destination, country))} target="_blank" rel="noreferrer">{t("View activity on map")} ↗</a><a href={directionsUrl(placeQuery(item.location, destination, country))} target="_blank" rel="noreferrer">{t("Get directions")} ↗</a></div></>}{item.note && <p>{item.note}</p>}{canEdit && <div className="activity-actions"><button onClick={() => editItem(item)}>{t("Edit")}</button><button onClick={() => removeItem(item.id)}>{t("Delete")}</button></div>}</div>
                 </article>)}</div>
                 {dayIndex < groupedItems.length - 1 && <div className="day-divider" />}
             </section>)}</div>}
