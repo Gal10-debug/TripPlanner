@@ -58,7 +58,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Changes to destination/country reset the map; obsolete lookups are canceled. Booking references and notes are excluded from map requests.
    - 78 frontend tests, build, and lint pass. Live public destination lookup verified. Visual map verification remains pending because no browser is connected.
    - No new dependency, API key, or database migration. Activity/accommodation links open external searches; their pins are not overlaid on the embedded destination map.
-9. Trip export and print with addresses, bookings, activities, and packing list.
+9. Trip export and print — implemented on `feature/trip-export-print` (based on step 8).
+   - Prepare a summary from each trip page, preview it, download standalone HTML for offline use, or print/save as PDF through the browser.
+   - Fresh authenticated reads include trip dates, accommodation/address, booking reference, notes, useful links, chronological itinerary, packing quantities/status, and budget/expenses.
+   - All required reads must succeed; failed or canceled preparation cannot produce a partial download. Refresh explicitly prepares a new snapshot.
+   - English/Hebrew document language and direction, localized dates/currency, print margins, repeating expense table headers, and no app navigation in the printed document.
+   - Escaped user content, HTTP(S)-only useful links, restrictive document CSP, and a script-disabled preview. The offline document needs no remote assets.
+   - 86 frontend tests, build, and lint pass. Native print/PDF layout verification remains pending because no browser is connected. No backend or database changes.
 10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.
 
 Add a Budget navigation entry when its cross-trip page is functional.

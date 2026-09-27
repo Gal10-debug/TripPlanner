@@ -476,3 +476,8 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 .destination-map__frame p, .map-attribution { font-size: 13px; }
 .map-stay { margin-top: 24px; }
 @media (max-width: 600px) { .destination-map__frame iframe { height: 280px; } }
+
+.trip-export { margin: 0 0 24px; }
+.export-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 12px 0; }
+.trip-export__preview { width: 100%; height: 600px; border: 1px solid #dfe5e1; border-radius: 12px; background: white; }
+@media(max-width:600px) { .trip-export__preview { height: 480px; } }

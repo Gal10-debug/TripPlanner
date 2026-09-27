@@ -154,3 +154,13 @@ Trip details include an on-demand destination map. The browser queries [Open-Met
 Destination, accommodation and itinerary links use [Google Maps URLs](https://developers.google.com/maps/documentation/urls/get-started) with encoded search/directions parameters. Only place text is included, never booking references or notes. Directions let Google Maps determine the origin. Accommodation and activity locations open externally rather than appearing as additional pins on the destination map.
 
 The current public geocoding endpoint needs no key; review Open-Meteo's usage terms before commercial deployment. A production content-security policy must allow connections to `https://geocoding-api.open-meteo.com` and frames from `https://www.openstreetmap.org`. Map rendering requires internet access; external map links remain available after lookup failures. No backend or schema changes are needed.
+
+## Trip export and printing
+
+On a trip page, choose **Prepare trip summary**. Preparation rereads the trip, itinerary, packing list and budget through authenticated endpoints; every section must load successfully. The summary is a snapshot of saved data, with a preparation timestamp in the user's preferred time zone. Activity times remain as entered. Use **Refresh summary** to capture subsequent edits.
+
+**Download summary** saves a self-contained UTF-8 HTML document that opens offline, including accommodation addresses, booking references, notes, useful link addresses, itinerary, packing status and expenses. **Print / Save as PDF** prints the isolated preview using the browser's print dialog. You can also open the downloaded HTML and print from the browser. Paper size, PDF destination and browser-added headers/footers are controlled by that dialog.
+
+The document uses system fonts and inline print CSS, with no scripts, remote images or external stylesheets. User-entered text is escaped, useful links accept only HTTP(S), and the preview disables scripts. Hebrew exports include RTL direction. Generated files contain the included booking and trip information; they remain local until the user shares them.
+
+Automated tests cover summary contents, empty states, HTML escaping, unsafe links, Hebrew direction, authenticated loading, cancellation, failed sections and the download/print controls. Native browser printing and visual pagination still need manual verification.
