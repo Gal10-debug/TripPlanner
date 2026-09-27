@@ -77,7 +77,10 @@ export default defineConfig([
 ## Application routes
 
 The application uses React Router with browser history. Signed-in routes currently
-include `/dashboard`, `/trips`, and `/invitations`. `/` redirects to the dashboard.
+include `/dashboard`, `/trips`, `/trips/:tripId`, and `/invitations`.
+Each trip has a dedicated page with details, itinerary, packing, budget, weather,
+and sharing. Trip cards link to that page; browser Back returns to the previous
+page, and the All trips link provides a return path for direct visits. `/` redirects to the dashboard.
 Authentication preserves the requested URL.
 
 For production, configure the frontend host to return `index.html` for frontend

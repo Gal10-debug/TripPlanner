@@ -4,6 +4,7 @@ import { getTrips, deleteTrip, updateTrip, updateTripDetails } from "./services/
 import TripForm from "./components/TripForm";
 import type { Trip, TripDetailsRequest } from "./models/Trip";
 import TripCard from "./components/TripCard";
+import TripPage from "./pages/TripPage";
 import AuthForm from "./components/AuthForm";
 import type { User } from "./models/User";
 import { getCurrentUser, logout } from "./services/authServices";
@@ -16,6 +17,8 @@ import "./App.css";
 
 function App() {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
+  const [tripsError, setTripsError] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [error, setError] = useState("");
@@ -29,10 +32,14 @@ function App() {
   const visibleTrips = tripsByStatus[tripFilter];
 
   const refreshTrips = useCallback(async () => {
+    setIsLoadingTrips(true);
+    setTripsError("");
     try {
       setTrips(await getTrips());
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to load trips.");
+      setTripsError(loadError instanceof Error ? loadError.message : "Failed to load trips.");
+    } finally {
+      setIsLoadingTrips(false);
     }
   }, []);
 
@@ -55,15 +62,18 @@ function App() {
       return;
     }
 
+    let cancelled = false;
     getTrips()
-      .then(setTrips)
-      .catch(loadError => setError(loadError instanceof Error ? loadError.message : "Failed to load trips."));
+      .then(loadedTrips => { if (!cancelled) setTrips(loadedTrips); })
+      .catch(loadError => { if (!cancelled) setTripsError(loadError instanceof Error ? loadError.message : "Failed to load trips."); })
+      .finally(() => { if (!cancelled) setIsLoadingTrips(false); });
+    return () => { cancelled = true; };
   }, [user]);
 
   async function handleDeleteTrip(id: number) {
     await deleteTrip(id);
 
-    setTrips(trips.filter(trip => trip.id !== id));
+    setTrips(currentTrips => currentTrips.filter(trip => trip.id !== id));
   }
 
   async function handleUpdateTrip(updatedTrip: Trip) {
@@ -88,6 +98,8 @@ function App() {
     try {
       await logout();
       setTrips([]);
+      setIsLoadingTrips(true);
+      setTripsError("");
       setUser(null);
       setError("");
     } catch (logoutError) {
@@ -146,6 +158,7 @@ function App() {
           <Route path="/dashboard" element={<>
             <PageHeading title="Where to next?" description="Your journeys at a glance." />
             <DepartureAlerts />
+            {tripsError && <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>Retry loading trips</button></div>}
             <div className="journey-overview">
               {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to="/trips" onClick={() => setTripFilter(status)}><strong>{tripsByStatus[status].length}</strong><span>{status} trips</span></Link>)}
             </div>
@@ -160,11 +173,12 @@ function App() {
             <div className="status-tabs" role="tablist" aria-label="Filter trips by status">
               {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <button key={status} role="tab" aria-selected={tripFilter === status} className={tripFilter === status ? "status-tab status-tab--active" : "status-tab"} onClick={() => setTripFilter(status)}><span className={`status-dot status-dot--${status}`} />{status}<b>{tripsByStatus[status].length}</b></button>)}
             </div>
-            {visibleTrips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>{emptyStateCopy[tripFilter].title}</h3><p>{emptyStateCopy[tripFilter].body}</p></div> :
-              <div className="trip-grid">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} status={getTripStatus(trip)} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />)}</div>}
+            {isLoadingTrips ? <p role="status">Loading trips…</p> : tripsError ? <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>Retry loading trips</button></div> : visibleTrips.length === 0 ? <div className="empty-state"><span aria-hidden="true">⌁</span><h3>{emptyStateCopy[tripFilter].title}</h3><p>{emptyStateCopy[tripFilter].body}</p></div> :
+              <div className="trip-grid">{visibleTrips.map((trip) => <TripCard key={trip.id} trip={trip} status={getTripStatus(trip)} />)}</div>}
           </section>
         </div>
           </>} />
+          <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
           <Route path="/invitations" element={<>
             <PageHeading title="Invitations" description="Manage invitations to journeys with friends and family." />
             <InvitationsPanel onAccepted={refreshTrips} />

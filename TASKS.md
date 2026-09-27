@@ -7,7 +7,12 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Root redirect, unknown route recovery, authenticated page access.
    - Five routing tests, production build, and lint pass.
    - Visual browser verification remains pending because no browser was available.
-2. Dedicated `/trips/:id` page, with details, itinerary, packing, and budget; replace expanding list cards with links.
+2. Dedicated `/trips/:id` page — implemented on `feature/trip-details-page` (based on step 1).
+   - Compact list cards link to the trip page; all existing panels and permissions are preserved.
+   - Direct URLs, history Back, All trips link, loading, retry, and unavailable-trip states.
+   - Editing updates the page and list; successful deletion returns to the list, failures stay visible.
+   - Routing and page regression tests cover navigation, edits, deletion, and Viewer/Editor controls.
+   - Visual browser verification remains pending because no browser was available.
 3. Fix reminder loading/empty state, password reset delivery in production, and departure-alert error/retry behavior.
 4. Monthly calendar combining trips and itinerary activities.
 5. Destination/country search and sorting by start date, duration, and creation date.

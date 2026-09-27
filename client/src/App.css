@@ -349,3 +349,13 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
   .journey-overview a { padding: 16px 10px; }
   .journey-overview span { font-size: 12px; }
 }
+
+.trip-card__summary { text-decoration: none; }
+.trip-card__summary:focus-visible { outline: 3px solid var(--green); outline-offset: -4px; }
+.trip-back-link { display: inline-block; margin-bottom: 24px; color: var(--green); font-weight: 700; }
+.trip-page .dashboard-intro h1 { overflow-wrap: anywhere; }
+.trip-page-summary { grid-template-columns: 1fr auto; }
+.trip-page-summary:hover { background: transparent; }
+@media (max-width: 560px) {
+  .trip-page-summary { grid-template-columns: 1fr; }
+}
