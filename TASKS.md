@@ -13,7 +13,14 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Editing updates the page and list; successful deletion returns to the list, failures stay visible.
    - Routing and page regression tests cover navigation, edits, deletion, and Viewer/Editor controls.
    - Visual browser verification remains pending because no browser was available.
-3. Fix reminder loading/empty state, password reset delivery in production, and departure-alert error/retry behavior.
+3. Reminder and password-reset fixes — implemented on `fix/reminders-password-reset` (based on step 2).
+   - Reminders distinguish loading, empty results, and errors; deleting the last reminder shows the empty state.
+   - Departure alerts show loading and failures with a retry action.
+   - SMTP password-reset email delivery and a complete emailed-code entry flow, including return visits.
+   - Production token privacy, one-hour expiry, configuration checks, and generic account responses.
+   - 28 frontend tests, frontend build/lint, and 10 server integration tests pass.
+   - Deployment still needs SMTP credentials and a verified sender; see `server/README.md`. Live email delivery has not been verified.
+   - Existing NuGet audit warnings remain for Microsoft.OpenApi 2.0.0 and SQLitePCLRaw.lib.e_sqlite3 2.1.11; dependency remediation is separate from these fixes.
 4. Monthly calendar combining trips and itinerary activities.
 5. Destination/country search and sorting by start date, duration, and creation date.
 6. Settings: profile, language, timezone, default currency; Hebrew translations and RTL.
@@ -31,3 +38,4 @@ The frontend host must serve `client/dist/index.html` for non-file frontend path
 ## Verification
 
 Run from `client`: `npm test`, `npm run build`, `npm run lint`.
+Run from the repository root: `dotnet test TripPlanner.slnx`.

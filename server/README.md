@@ -1,0 +1,57 @@
+# Server setup
+
+Run from the repository root with `dotnet run --project server`.
+
+## Password reset email
+
+The custom `/api/auth/forgot-password` endpoint now sends an email containing an
+ASP.NET Identity reset code. Users can paste it into the reset form immediately,
+or return later through **Forgot your password? → I already have a reset code**.
+Successful reset invalidates the code. Tokens expire after one hour.
+
+Configure these environment variables in the server's deployment secrets/settings:
+
+| Variable | Value |
+| --- | --- |
+| `Email__Smtp__Host` | Your SMTP provider's hostname |
+| `Email__Smtp__Port` | `587` for STARTTLS (default), or your provider's port |
+| `Email__Smtp__FromAddress` | A sender address verified by your provider |
+| `Email__Smtp__FromName` | Optional display name; defaults to `Wanderly` |
+| `Email__Smtp__Username` | SMTP username |
+| `Email__Smtp__Password` | SMTP password or provider SMTP key |
+| `Email__Smtp__UseImplicitTls` | `false` for required STARTTLS (default); `true` for implicit TLS, normally port 465 |
+
+Username and password must either both be present or both be omitted for a relay
+that authorizes the server by other means. TLS is always required and certificate
+validation remains enabled. Sending has a 20-second deadline. Keep credentials out
+of source control. SMTP providers that require OAuth instead of SMTP credentials
+need a different authentication adapter.
+
+In Production (and any non-Development environment), the endpoint never returns
+the token. Without valid SMTP settings it returns HTTP 503 for every account.
+A runtime delivery failure is logged by exception type only; the public response
+stays generic to avoid revealing registered accounts. Monitor the server's
+`Password reset email delivery failed` errors; failed sends are not queued or
+automatically retried. Users can request another code.
+
+Development retains the existing token-in-response shortcut, and also sends email
+if SMTP is configured. Use `ASPNETCORE_ENVIRONMENT=Production` in deployment.
+Persist and protect the ASP.NET Data Protection key ring in production, and share
+it between replicas, so reset codes remain valid across restarts and servers.
+The one-hour token lifetime also applies to other Identity data-protection tokens.
+
+These changes implement delivery but do not configure a live provider. Verify a
+reset email reaches a controlled inbox after deployment settings are supplied.
+No real emails are sent by the automated tests.
+
+## Tests
+
+From the repository root: `dotnet test TripPlanner.slnx`.
+
+Password-reset integration tests use temporary SQLite databases, ephemeral
+Data Protection keys, and a recording email sender. They cover the production
+request/reset/login flow, token reuse and expiry, weak passwords, unknown users,
+missing SMTP configuration, delivery failures, and the development shortcut.
+
+Frontend regression checks: `npm --prefix client test`,
+`npm --prefix client run build`, and `npm --prefix client run lint`.

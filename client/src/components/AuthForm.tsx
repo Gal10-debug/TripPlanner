@@ -26,11 +26,11 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
                 const token = await requestPasswordReset(email);
                 setMessage(token
                     ? "Reset code created. Choose your new password below."
-                    : "If an account exists for that email, reset instructions have been created.");
-                if (token) {
-                    setResetToken(token);
-                    setMode("reset");
-                }
+                    : "If an account exists for that email, you will receive a reset code. Check your inbox and spam folder. If it does not arrive, try again later.");
+                setResetToken(token ?? "");
+                setPassword("");
+                setConfirmPassword("");
+                setMode("reset");
                 return;
             }
 
@@ -39,7 +39,7 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
                     setError("The passwords do not match.");
                     return;
                 }
-                await resetPassword(email, resetToken, password);
+                await resetPassword(email.trim(), resetToken.trim(), password);
                 setPassword("");
                 setConfirmPassword("");
                 setResetToken("");
@@ -110,9 +110,11 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
             {message && <p className="success-message" role="status">{message}</p>}
 
             <button className="button button--primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Just a moment…" : mode === "login" ? "Sign in" : mode === "register" ? "Create my account" : mode === "forgot" ? "Create reset code" : "Update password"}
+                {isSubmitting ? "Just a moment…" : mode === "login" ? "Sign in" : mode === "register" ? "Create my account" : mode === "forgot" ? "Send reset code" : "Update password"}
                 {!isSubmitting && <span aria-hidden="true">→</span>}
             </button>
+            {mode === "forgot" && <button className="forgot-password" type="button" onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>I already have a reset code</button>}
+            {mode === "reset" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setResetToken(""); setError(""); setMessage(""); }}>Request another reset code</button>}
             {mode === "login" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setError(""); setMessage(""); }}>Forgot your password?</button>}
             <p className="auth-switch">{mode === "login" ? "New to Wanderly?" : "Ready to sign in?"}<button type="button" onClick={switchMode}>{mode === "login" ? "Create an account" : "Sign in"}</button></p>
         </form>

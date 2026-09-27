@@ -10,6 +10,7 @@ interface WeatherRemindersPanelProps {
 
 function WeatherRemindersPanel({ tripId, startDate, canEdit }: WeatherRemindersPanelProps) {
     const [weather, setWeather] = useState<WeatherForecast | null>(null);
+    const [isLoadingReminders, setIsLoadingReminders] = useState(true);
     const [reminders, setReminders] = useState<TripReminder[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [title, setTitle] = useState("");
@@ -21,7 +22,7 @@ function WeatherRemindersPanel({ tripId, startDate, canEdit }: WeatherRemindersP
     useEffect(() => {
         let active = true;
         getWeather(tripId).then(data => { if (active) setWeather(data); }).catch(error => { if (active) setWeatherError(error instanceof Error ? error.message : "Weather is unavailable."); });
-        getReminders(tripId).then(data => { if (active) setReminders(data); }).catch(error => { if (active) setReminderError(error instanceof Error ? error.message : "Reminders are unavailable."); });
+        getReminders(tripId).then(data => { if (active) setReminders(data); }).catch(error => { if (active) setReminderError(error instanceof Error ? error.message : "Reminders are unavailable."); }).finally(() => { if (active) setIsLoadingReminders(false); });
         return () => { active = false; };
     }, [tripId]);
 
@@ -50,6 +51,7 @@ function WeatherRemindersPanel({ tripId, startDate, canEdit }: WeatherRemindersP
 
     async function removeReminder(reminderId: number) {
         setIsSaving(true);
+        setReminderError("");
         try { await deleteReminder(tripId, reminderId); setReminders(current => current.filter(item => item.id !== reminderId)); }
         catch (error) { setReminderError(error instanceof Error ? error.message : "Failed to delete reminder."); }
         finally { setIsSaving(false); }
@@ -62,10 +64,10 @@ function WeatherRemindersPanel({ tripId, startDate, canEdit }: WeatherRemindersP
         </div>
 
         <div className="reminders-block">
-            <div className="travel-section-heading"><div><span className="eyebrow">Departure reminders</span><h3>Leave nothing behind</h3></div>{canEdit && <button className="text-action" onClick={() => setShowForm(value => !value)}>+ Add reminder</button>}</div>
+            <div className="travel-section-heading"><div><span className="eyebrow">Departure reminders</span><h3>Leave nothing behind</h3></div>{canEdit && <button className="text-action" disabled={isLoadingReminders} onClick={() => setShowForm(value => !value)}>+ Add reminder</button>}</div>
             {showForm && <form className="reminder-form" onSubmit={submitReminder}><label>Reminder<input value={title} onChange={event => setTitle(event.target.value)} placeholder="Download offline maps…" maxLength={200} required /></label><label>Due date<input type="date" value={dueDate} onChange={event => setDueDate(event.target.value)} required /></label><div className="card-actions"><button type="submit" disabled={isSaving}>Add reminder</button><button type="button" className="secondary-action" onClick={() => setShowForm(false)}>Cancel</button></div></form>}
-            {reminderError && <p className="inline-notice inline-notice--error">{reminderError}</p>}
-            {reminders.length === 0 && !reminderError ? <p className="travel-status">Loading reminders…</p> : <div className="reminder-list">{reminders.map(reminder => <article className={reminder.isCompleted ? "reminder-item reminder-item--done" : "reminder-item"} key={reminder.id}><label><input type="checkbox" checked={reminder.isCompleted} disabled={!canEdit || isSaving} onChange={() => toggleReminder(reminder)} /><span className="custom-check">✓</span><span><strong>{reminder.title}</strong><small>{relativeDueDate(reminder.dueDate)}{reminder.isAutomatic ? " · Suggested" : ""}</small></span></label>{canEdit && !reminder.isAutomatic && <button disabled={isSaving} onClick={() => removeReminder(reminder.id)}>×</button>}</article>)}</div>}
+            {reminderError && <p className="inline-notice inline-notice--error" role="alert">{reminderError}</p>}
+            {isLoadingReminders ? <p className="travel-status" role="status">Loading reminders…</p> : reminders.length === 0 && !reminderError ? <p className="travel-status">No reminders yet.{canEdit ? " Add one to prepare for your trip." : ""}</p> : <div className="reminder-list">{reminders.map(reminder => <article className={reminder.isCompleted ? "reminder-item reminder-item--done" : "reminder-item"} key={reminder.id}><label><input type="checkbox" checked={reminder.isCompleted} disabled={!canEdit || isSaving} onChange={() => toggleReminder(reminder)} /><span className="custom-check">✓</span><span><strong>{reminder.title}</strong><small>{relativeDueDate(reminder.dueDate)}{reminder.isAutomatic ? " · Suggested" : ""}</small></span></label>{canEdit && !reminder.isAutomatic && <button disabled={isSaving} onClick={() => removeReminder(reminder.id)}>×</button>}</article>)}</div>}
         </div>
     </section>;
 }
