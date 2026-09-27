@@ -65,7 +65,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - English/Hebrew document language and direction, localized dates/currency, print margins, repeating expense table headers, and no app navigation in the printed document.
    - Escaped user content, HTTP(S)-only useful links, restrictive document CSP, and a script-disabled preview. The offline document needs no remote assets.
    - 86 frontend tests, build, and lint pass. Native print/PDF layout verification remains pending because no browser is connected. No backend or database changes.
-10. Extend critical-flow tests for trip creation/editing, sharing, expenses, and password reset as the relevant work lands.
+10. Critical-flow test coverage — implemented on `test/critical-trip-flows` (based on step 9).
+   - Nine new API integration cases use isolated SQLite databases and real authenticated owner, collaborator, unrelated-user, and anonymous sessions.
+   - Trip creation validation, persisted details across sessions, successful edits, and rejection of date changes that would strand itinerary activities.
+   - Invitation acceptance, recipient isolation, replay rejection, duplicate invite updates, decline/cancellation, editor/viewer permissions, owner-only actions, and access revocation.
+   - Expense creation/edit/deletion, exact decimal totals, overspending, invalid amounts, and cross-trip expense ID isolation.
+   - Existing password-reset tests cover delivery, successful reset/login, account privacy, invalid/expired codes, weak passwords, and SMTP configuration/failure behavior.
+   - All 43 backend tests pass. Frontend remains at 86 passing tests from step 9. No application code, database, or deployment changes in this step.
 
 Add a Budget navigation entry when its cross-trip page is functional.
 
