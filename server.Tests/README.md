@@ -15,6 +15,7 @@ Each `ResetApplication` factory starts the real ASP.NET Core application with an
 - `PasswordResetTests`: reset delivery and login, account privacy, invalid and expired codes, password validation, and unavailable email delivery.
 - `CalendarTests`: date boundaries, activities, and owned/shared trip access.
 - `SettingsTests`: account preference persistence, validation, isolation, and default currency behavior.
+- `ReminderEmailTests`: opt-in defaults, account isolation, persistence, provider configuration, retry delays/exhaustion, lease recovery, and cancellation for revoked or obsolete reminders.
 - `NotificationTests`: time-zone-aware generation, duplicate prevention, read state, and access revocation.
 
 These are HTTP/database integration tests. Browser layout, native notifications, and browser printing require separate browser verification. Existing NuGet audit warnings are recorded in `TASKS.md` and are not suppressed by this test suite.

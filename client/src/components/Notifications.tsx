@@ -1,22 +1,50 @@
+import { notificationPreferences, type NotificationPreferences } from '../services/notificationPreferences';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from '../i18n/preferences';
 
-type Notice = { id: number; tripId: number; title: string; destination: string; dueDate: string; isRead: boolean; isAutomatic: boolean };
+type Notice = { id: number; tripId: number; title: string; destination: string; dueDate: string; isRead: boolean; isAutomatic: boolean; emailStatus?: string };
 async function request(path = '', method = 'GET'): Promise<Notice[]> {
   const response = await fetch(`/api/notifications${path}`, { method, credentials: 'include' });
   if (!response.ok) throw new Error('Unable to load notifications. Please try again.');
   return method === 'GET' ? response.json() : [];
 }
 const Context = createContext<{
+  preferences: NotificationPreferences | null; preferencesBusy: boolean; preferencesError: string;
+  saveEmail: (enabled: boolean) => Promise<void>; loadPreferences: () => Promise<void>;
   items: Notice[]; loading: boolean; error: string; refresh: () => Promise<void>;
-  read: (id?: number) => Promise<void>; enable: () => Promise<void>; enabled: boolean; browserError: string;
+  read: (id?: number) => Promise<void>; enable: (allowOnDevice?: boolean) => Promise<void>; enabled: boolean; browserError: string;
 } | null>(null);
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [enabled, setEnabled] = useState(false);
+  const [preferences, setNotificationPreferences] = useState<NotificationPreferences | null>(null);
+  const [preferencesBusy, setPreferencesBusy] = useState(false);
+  const [preferencesError, setPreferencesError] = useState('');
+  const enabled = preferences?.browserNotifications === true && 'Notification' in window && Notification.permission === 'granted';
+  async function loadPreferences() {
+    setPreferencesBusy(true);
+    try { setNotificationPreferences(await notificationPreferences()); setPreferencesError(''); }
+    catch { setPreferencesError('Unable to load or save notification preferences. Please try again.'); }
+    finally { setPreferencesBusy(false); }
+  }
+  async function savePreference(changes: Partial<NotificationPreferences>) {
+    if (!preferences || preferencesBusy) return;
+    setPreferencesBusy(true);
+    try {
+      setNotificationPreferences(await notificationPreferences({ emailReminders: preferences.emailReminders, browserNotifications: preferences.browserNotifications, ...changes }));
+      setPreferencesError('');
+    } catch { setPreferencesError('Unable to load or save notification preferences. Please try again.'); }
+    finally { setPreferencesBusy(false); }
+  }
+  async function saveEmail(emailReminders: boolean) { await savePreference({ emailReminders }); }
+  useEffect(() => {
+    let active = true;
+    notificationPreferences().then(value => { if (active) setNotificationPreferences(value); })
+      .catch(() => { if (active) setPreferencesError('Unable to load or save notification preferences. Please try again.'); });
+    return () => { active = false; };
+  }, []);
   const [browserError, setBrowserError] = useState('');
   async function refresh() {
     try { setItems(await request()); setError(''); }
@@ -39,6 +67,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void (async () => {
       try {
+        await navigator.serviceWorker.register('/notifications-sw.js');
         const registration = await navigator.serviceWorker.ready;
         for (const item of items.filter(item => !item.isRead)) {
           if (cancelled) return;
@@ -57,14 +86,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     })();
     return () => { cancelled = true; };
   }, [enabled, items]);
-  async function enable() {
-    if (enabled) { setEnabled(false); return; }
+  async function enable(allowOnDevice = false) {
+    if (preferences?.browserNotifications && !allowOnDevice) { await savePreference({ browserNotifications: false }); return; }
     try {
       if (!('Notification' in window) || !('serviceWorker' in navigator) || !navigator.locks) throw new Error();
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') throw new Error();
       await navigator.serviceWorker.register('/notifications-sw.js');
-      setEnabled(true); setBrowserError('');
+      await savePreference({ browserNotifications: true }); setBrowserError('');
     } catch { setBrowserError('Browser alerts could not be enabled. Check browser support and permissions.'); }
   }
   async function read(id?: number) {
@@ -74,7 +103,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setError('');
     } catch { setError('Unable to update notifications. Please try again.'); }
   }
-  return <Context.Provider value={{ items, loading, error, refresh, read, enable, enabled, browserError }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ preferences, preferencesBusy, preferencesError, saveEmail, loadPreferences, items, loading, error, refresh, read, enable, enabled, browserError }}>{children}</Context.Provider>;
 }
 export function NotificationLink() {
   const state = useContext(Context)!;
@@ -86,15 +115,21 @@ export default function NotificationsPage() {
   return <section>
     <div className="dashboard-intro"><span className="eyebrow">{t('My journeys')}</span><h1>{t('Notifications')}</h1><p>{t('Due reminders from your trips, all in one place.')}</p></div>
     <div className="notification-controls">
-      <button className="button button--ghost" onClick={() => void state.enable()}>{t(state.enabled ? 'Turn off browser alerts' : 'Enable browser alerts')}</button>
-      <p>{t('Browser alerts are optional for this session and work while Wanderly is open. New reminders are checked every minute.')}</p>
+      <button className="button button--ghost" disabled={!state.preferences || state.preferencesBusy} onClick={() => void state.enable()}>{t(state.preferences?.browserNotifications ? 'Turn off browser alerts' : 'Enable browser alerts')}</button>
+      {state.preferences?.browserNotifications && !state.enabled && <button className="button button--ghost" disabled={state.preferencesBusy} onClick={() => void state.enable(true)}>{t('Allow browser alerts on this device')}</button>}
+      <p>{t('Browser preference is saved to your account. Allow alerts on each device; Wanderly must remain open.')}</p>
+      {!state.preferences && !state.preferencesError && <p role="status">{t('Loading notification preferences…')}</p>}
+      {state.preferences && <label className="notification-email-option"><input type="checkbox" checked={state.preferences.emailReminders} disabled={state.preferencesBusy || (!state.preferences.emailAvailable && !state.preferences.emailReminders)} onChange={event => void state.saveEmail(event.target.checked)} />{t('Email me new due reminders')}</label>}
+      <p>{t('Email reminders apply to notifications created after you opt in. Your in-app notification center remains available.')}</p>
+      {state.preferences && !state.preferences.emailAvailable && <p>{t('Email reminders are not configured on this server yet.')}</p>}
+      {state.preferencesError && <div role="alert"><p>{t(state.preferencesError)}</p><button className="button button--ghost" onClick={() => void state.loadPreferences()}>{t('Retry notification preferences')}</button></div>}
       {state.browserError && <p role="alert">{t(state.browserError)}</p>}
       <button className="button button--ghost" disabled={!state.items.some(item => !item.isRead)} onClick={() => void state.read()}>{t('Mark all as read')}</button>
     </div>
     {state.error && <div role="alert"><p>{t(state.error)}</p><button className="button" onClick={() => void state.refresh()}>{t('Retry')}</button></div>}
     {state.loading ? <p role="status">{t('Loading notifications…')}</p> : state.items.length === 0 && !state.error ? <p>{t('No notifications yet. Due trip reminders will appear here.')}</p> :
       <ul className="notification-list">{state.items.map(item => <li key={item.id} className={item.isRead ? '' : 'notification-unread'}>
-        <div><Link to={`/trips/${item.tripId}`}>{item.destination}</Link><p>{item.isAutomatic ? t(item.title) : item.title}</p><time dateTime={item.dueDate}>{item.dueDate}</time></div>
+        <div><Link to={`/trips/${item.tripId}`}>{item.destination}</Link><p>{item.isAutomatic ? t(item.title) : item.title}</p><time dateTime={item.dueDate}>{item.dueDate}</time>{item.emailStatus === 'sent' && <p>{t('Email sent')}</p>}{item.emailStatus === 'pending' && <p>{t('Email queued')}</p>}{item.emailStatus === 'failed' && <p>{t('Email delivery failed. Please use this reminder in the app.')}</p>}</div>
         {!item.isRead && <button className="button button--ghost" onClick={() => void state.read(item.id)}>{t('Mark as read')}</button>}
       </li>)}</ul>}
   </section>;

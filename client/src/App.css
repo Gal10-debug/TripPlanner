@@ -481,3 +481,6 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 .export-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 12px 0; }
 .trip-export__preview { width: 100%; height: 600px; border: 1px solid #dfe5e1; border-radius: 12px; background: white; }
 @media(max-width:600px) { .trip-export__preview { height: 480px; } }
+
+.notification-email-option { display: flex; align-items: center; gap: 10px; }
+.notification-email-option input { width: auto; }

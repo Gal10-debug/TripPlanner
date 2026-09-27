@@ -23,8 +23,9 @@ public class NotificationService(TripPlannerContext context, ReminderService rem
             if (trip.EndDate < today) continue;
             foreach (var reminder in due.Where(r => r.TripId == trip.Id && r.DueDate <= today))
             {
+                var emailStatus = settings.GetValueOrDefault(userId)?.EmailReminders == true ? "pending" : "none";
                 // Atomic insert makes repeated checks and concurrent workers idempotent.
-                await context.Database.ExecuteSqlInterpolatedAsync($"INSERT OR IGNORE INTO UserNotifications (UserId, ReminderId, DueDate, IsRead) VALUES ({userId}, {reminder.Id}, {reminder.DueDate}, {false})", cancellationToken);
+                await context.Database.ExecuteSqlInterpolatedAsync($"INSERT OR IGNORE INTO UserNotifications (UserId, ReminderId, DueDate, IsRead, EmailStatus, EmailAttempts, EmailNextAttemptUtcTicks) VALUES ({userId}, {reminder.Id}, {reminder.DueDate}, {false}, {emailStatus}, 0, 0)", cancellationToken);
             }
         }
     }
@@ -42,6 +43,7 @@ public class NotificationWorker(IServiceScopeFactory scopes, IConfiguration conf
             {
                 using var scope = scopes.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<NotificationService>().GenerateAsync(stoppingToken);
+                await scope.ServiceProvider.GetRequiredService<ReminderEmailDelivery>().DeliverAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
             catch (Exception exception) { logger.LogError("Reminder notification check failed ({ErrorType}); retrying in one minute.", exception.GetType().Name); }

@@ -49,7 +49,7 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - A background check every minute creates persistent notifications for incomplete due reminders on active owned/shared trips, using each recipient’s time zone.
    - Unique database keys prevent repeated delivery records. Completed/rescheduled reminders and revoked trip access are filtered from the center.
    - Optional browser alerts enabled explicitly for the current session, with service-worker click-through and cross-tab duplicate prevention. Requires browser support, HTTPS/localhost, and an open app; this is not closed-app push.
-   - Email reminders and persistent account-wide channel preferences remain the later channel expansion; existing SMTP remains for password reset only.
+   - Email reminders and persistent account-wide preferences were added in follow-up step 11 below.
    - 71 frontend tests and 34 backend tests, build, and lint pass. Local API restarted; migration, authenticated endpoint protection, and service-worker asset verified. Browser visual/native notification verification remains pending because no browser is connected.
 8. Destination maps and directions — implemented on `feature/destination-maps` (based on step 7).
    - Each trip has an expandable OpenStreetMap destination map, with Open-Meteo/GeoNames location lookup and a chooser for ambiguous results.
@@ -72,6 +72,15 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Expense creation/edit/deletion, exact decimal totals, overspending, invalid amounts, and cross-trip expense ID isolation.
    - Existing password-reset tests cover delivery, successful reset/login, account privacy, invalid/expired codes, weak passwords, and SMTP configuration/failure behavior.
    - All 43 backend tests pass. Frontend remains at 86 passing tests from step 9. No application code, database, or deployment changes in this step.
+
+11. Saved notification preferences and email reminders — implemented on `feature/notification-preferences` (based on step 10).
+   - Persistent browser and email preferences per authenticated account, both off by default; Settings links to the notification controls.
+   - Browser preferences resume on permitted devices, with an explicit permission action on new devices. Browser alerts still require an open app.
+   - Opt-in reminder email reuses configured TLS SMTP; English/Hebrew messages, durable queue status, bounded retries, and claim leases. Existing notifications are not replayed on opt-in.
+   - Opt-out cancels pending email; delivery checks current membership, reminder completion/date, and trip end. Queued/sent/failed status appears in the center.
+   - In-app notifications remain available. SMTP acceptance cannot guarantee inbox delivery or exactly-once delivery across process failures.
+   - All 89 frontend and 53 backend tests, build, and lint pass. Tests use fake email senders; no real email was sent. API restarted; migration and protected preferences endpoint verified.
+   - Deployment requires SMTP configuration. Live SMTP, native browser alerts, print layout, and visual checks remain pending.
 
 Add a Budget navigation entry when its cross-trip page is functional.
 

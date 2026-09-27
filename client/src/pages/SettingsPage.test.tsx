@@ -26,7 +26,7 @@ afterEach(() => { cleanup(); setPreferences(defaultPreferences); });
 it('loads the profile and saves preferences with Hebrew labels and RTL', async () => {
   const changed = { ...account, displayName: 'גל', language: 'he' as const, timeZone: 'Asia/Jerusalem', defaultCurrency: 'ILS' };
   vi.mocked(saveSettings).mockResolvedValue(changed);
-  render(<SettingsPage />);
+  render(<MemoryRouter><SettingsPage /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText('Display name'), { target: { value: 'גל' } });
   fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'he' } });
   fireEvent.change(screen.getByLabelText('Time zone'), { target: { value: 'Asia/Jerusalem' } });
@@ -43,7 +43,7 @@ it('loads the profile and saves preferences with Hebrew labels and RTL', async (
 });
 it('retains active preferences and unsaved inputs after a save failure', async () => {
   vi.mocked(saveSettings).mockRejectedValue(new Error('Offline'));
-  render(<SettingsPage />);
+  render(<MemoryRouter><SettingsPage /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText('Language'), { target: { value: 'he' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
   expect(await screen.findByRole('alert')).toBeTruthy();
@@ -52,7 +52,7 @@ it('retains active preferences and unsaved inputs after a save failure', async (
 });
 it('retries a failed initial load', async () => {
   vi.mocked(getSettings).mockRejectedValueOnce(new Error('Offline')).mockResolvedValue(account);
-  render(<SettingsPage />);
+  render(<MemoryRouter><SettingsPage /></MemoryRouter>);
   fireEvent.click(await screen.findByRole('button', { name: 'Retry settings' }));
   expect(await screen.findByLabelText('Default currency')).toHaveProperty('value', 'USD');
 });
@@ -60,7 +60,7 @@ it('returns to English and LTR after saving English', async () => {
   setPreferences({ ...defaultPreferences, language: 'he' });
   vi.mocked(getSettings).mockResolvedValue({ ...account, language: 'he' });
   vi.mocked(saveSettings).mockResolvedValue(account);
-  render(<SettingsPage />);
+  render(<MemoryRouter><SettingsPage /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText('שפה'), { target: { value: 'en' } });
   fireEvent.click(screen.getByRole('button', { name: 'שמירת הגדרות' }));
   expect(await screen.findByText('Settings saved.')).toBeTruthy();

@@ -22,7 +22,7 @@ public sealed class SmtpOptions
     public bool UseImplicitTls { get; set; }
 }
 
-public sealed class PasswordResetEmailSender(IOptions<SmtpOptions> options) : IPasswordResetEmailSender
+public sealed class SmtpEmailTransport(IOptions<SmtpOptions> options)
 {
     private readonly SmtpOptions settings = options.Value;
 
@@ -31,29 +31,14 @@ public sealed class PasswordResetEmailSender(IOptions<SmtpOptions> options) : IP
         && MailboxAddress.TryParse(settings.FromAddress, out _)
         && (string.IsNullOrEmpty(settings.Username) == string.IsNullOrEmpty(settings.Password));
 
-    public async Task SendAsync(string email, string token, CancellationToken cancellationToken)
+    public async Task SendAsync(string email, string subject, string body, CancellationToken cancellationToken)
     {
-        if (!IsConfigured) throw new InvalidOperationException("Password reset email is not configured.");
-
+        if (!IsConfigured) throw new InvalidOperationException("Email is not configured.");
         using var message = new MimeMessage();
         message.From.Add(new MailboxAddress(settings.FromName, settings.FromAddress));
         message.To.Add(MailboxAddress.Parse(email));
-        message.Subject = "Reset your Wanderly password";
-        message.Body = new TextPart("plain")
-        {
-            Text = $"""
-                A password reset was requested for your Wanderly account.
-
-                Return to Wanderly, select "Forgot your password?", then "I already have a reset code".
-                Enter this email address, paste the full code below, and choose a new password.
-                The code expires after one hour and can only be used once.
-
-                {token}
-
-                If you did not request this, you can ignore this email. Your password has not changed.
-                """
-        };
-
+        message.Subject = subject;
+        message.Body = new TextPart("plain") { Text = body };
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(20));
         using var client = new SmtpClient { Timeout = 15000 };
@@ -63,6 +48,25 @@ public sealed class PasswordResetEmailSender(IOptions<SmtpOptions> options) : IP
         if (!string.IsNullOrEmpty(settings.Username))
             await client.AuthenticateAsync(settings.Username, settings.Password, deadline.Token);
         await client.SendAsync(message, deadline.Token);
-        await client.DisconnectAsync(true, deadline.Token);
+        // Once SMTP accepted the message, a failed QUIT must not trigger a resend.
+        try { await client.DisconnectAsync(true, deadline.Token); }
+        catch (Exception) { /* The message has already been accepted by the SMTP server. */ }
     }
+}
+
+public sealed class PasswordResetEmailSender(SmtpEmailTransport transport) : IPasswordResetEmailSender
+{
+    public bool IsConfigured => transport.IsConfigured;
+    public Task SendAsync(string email, string token, CancellationToken cancellationToken) => transport.SendAsync(email,
+        "Reset your Wanderly password", $"""
+        A password reset was requested for your Wanderly account.
+
+        Return to Wanderly, select "Forgot your password?", then "I already have a reset code".
+        Enter this email address, paste the full code below, and choose a new password.
+        The code expires after one hour and can only be used once.
+
+        {token}
+
+        If you did not request this, you can ignore this email. Your password has not changed.
+        """, cancellationToken);
 }

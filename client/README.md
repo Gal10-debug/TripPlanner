@@ -164,3 +164,9 @@ On a trip page, choose **Prepare trip summary**. Preparation rereads the trip, i
 The document uses system fonts and inline print CSS, with no scripts, remote images or external stylesheets. User-entered text is escaped, useful links accept only HTTP(S), and the preview disables scripts. Hebrew exports include RTL direction. Generated files contain the included booking and trip information; they remain local until the user shares them.
 
 Automated tests cover summary contents, empty states, HTML escaping, unsafe links, Hebrew direction, authenticated loading, cancellation, failed sections and the download/print controls. Native browser printing and visual pagination still need manual verification.
+
+## Notification channels
+
+The Notifications page saves email and browser preferences per account; Settings links there. Both are off initially. Email is available only when the server's SMTP configuration is present. Enabling email applies to subsequently created notifications, and opting out cancels pending email. In-app reminders stay available regardless of channel preferences.
+
+Saved browser alerts resume after sign-in on devices with granted permission. On another device, use **Allow browser alerts on this device**. Permission is never requested automatically. Browser alerts still need an open app; there is no closed-app web push. A saved preference change is loaded by other open sessions when they reload.

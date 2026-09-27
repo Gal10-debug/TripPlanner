@@ -18,7 +18,10 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddHostedService<NotificationWorker>();
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+builder.Services.AddTransient<SmtpEmailTransport>();
 builder.Services.AddTransient<IPasswordResetEmailSender, PasswordResetEmailSender>();
+builder.Services.AddTransient<IReminderEmailSender, ReminderEmailSender>();
+builder.Services.AddScoped<ReminderEmailDelivery>();
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(1));
 builder.Services.AddHttpClient<WeatherService>(client => client.Timeout = TimeSpan.FromSeconds(8));

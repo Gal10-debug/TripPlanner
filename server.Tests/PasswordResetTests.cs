@@ -152,6 +152,7 @@ internal sealed class ResetApplication(string environment = "Production", bool e
 {
     private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"wanderly-reset-{Guid.NewGuid():N}.db");
     public RecordingEmailSender Sender { get; } = new();
+    public RecordingReminderSender ReminderSender { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -164,6 +165,8 @@ internal sealed class ResetApplication(string environment = "Production", bool e
         }));
         builder.ConfigureTestServices(services =>
         {
+            services.RemoveAll<IReminderEmailSender>();
+            services.AddSingleton<IReminderEmailSender>(ReminderSender);
             services.RemoveAll<IPasswordResetEmailSender>();
             services.AddSingleton<IPasswordResetEmailSender>(Sender);
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
@@ -190,6 +193,19 @@ internal sealed class RecordingEmailSender : IPasswordResetEmailSender
     {
         if (FailDelivery) throw new InvalidOperationException("Simulated email failure");
         Messages.Add((email, token));
+        return Task.CompletedTask;
+    }
+}
+
+internal sealed class RecordingReminderSender : IReminderEmailSender
+{
+    public bool IsConfigured { get; set; } = true;
+    public bool FailDelivery { get; set; }
+    public List<ReminderEmail> Messages { get; } = [];
+    public Task SendAsync(ReminderEmail reminder, CancellationToken cancellationToken)
+    {
+        if (FailDelivery) throw new InvalidOperationException("Simulated reminder delivery failure");
+        Messages.Add(reminder);
         return Task.CompletedTask;
     }
 }
