@@ -15,9 +15,12 @@ import { getCurrentUser, logout } from "./services/authServices";
 import { sortTripsByStatus, type TripStatus } from "./utils/tripStatus";
 import InvitationsPanel from "./components/InvitationsPanel";
 import DepartureAlerts from "./components/DepartureAlerts";
+import TripCard from "./components/TripCard";
+import NavIcon from "./components/NavIcon";
 
 
 import "./App.css";
+import "./design.css";
 
 function App() {
   const preferences = usePreferences();
@@ -127,7 +130,7 @@ function App() {
     return (
       <main className="welcome-page">
         <section className="welcome-hero">
-          <div className="brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></div>
+          <div className="brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("TripPlanner")}</span></div>
           <div className="hero-copy">
             <span className="eyebrow">{t("Your journey starts here")}</span>
             <h1>{t("Dream it.")}<br /><em>{t("Plan it.")}</em>{" "}{t("Go.")}</h1>
@@ -141,7 +144,7 @@ function App() {
         </section>
         <section className="welcome-panel">
           <div className="auth-shell">
-            <div className="mobile-brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></div>
+            <div className="mobile-brand"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("TripPlanner")}</span></div>
             {error && <p className="alert" role="alert">{t(error)}</p>}
             <AuthForm onAuthenticated={setUser} />
           </div>
@@ -155,15 +158,15 @@ function App() {
     <NotificationProvider key={user.email}><div className="dashboard app-layout">
       <a className="skip-link" href="#page-content">{t("Skip to content")}</a>
       <header className="dashboard-header">
-        <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("Wanderly")}</span></Link>
+        <Link to="/dashboard" className="brand brand--dark"><span className="brand-mark" aria-hidden="true">✦</span><span>{t("TripPlanner")}</span></Link>
         <div className="account-actions"><NotificationLink /><span>{preferences.displayName || user.email}</span><button className="button button--ghost" onClick={handleLogout}>{t("Log out")}</button></div>
       </header>
       <nav className="app-navigation" aria-label={t("Main navigation")}>
-        <NavLink to="/dashboard">{t("Dashboard")}</NavLink>
-        <NavLink to="/trips">{t("Trips")}</NavLink>
-        <NavLink to="/calendar">{t("Calendar")}</NavLink>
-        <NavLink to="/invitations">{t("Invitations")}</NavLink>
-        <NavLink to="/settings">{t("Settings")}</NavLink>
+        <NavLink to="/dashboard"><NavIcon name="dashboard" /><span>{t("Dashboard")}</span></NavLink>
+        <NavLink to="/trips"><NavIcon name="trips" /><span>{t("Trips")}</span></NavLink>
+        <NavLink to="/calendar"><NavIcon name="calendar" /><span>{t("Calendar")}</span></NavLink>
+        <NavLink to="/invitations"><NavIcon name="invitations" /><span>{t("Invitations")}</span></NavLink>
+        <NavLink to="/settings"><NavIcon name="settings" /><span>{t("Settings")}</span></NavLink>
       </nav>
       <main id="page-content" className="dashboard-content" tabIndex={-1}>
         {error && <p className="alert" role="alert">{t(error)}</p>}
@@ -171,13 +174,31 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<>
-            <PageHeading title={t("Where to next?")} description={t("Your journeys at a glance.")} />
+            <section className="dashboard-hero">
+              <div className="dashboard-hero__copy">
+                <PageHeading title={t("Where to next?")} description={t("Your journeys at a glance.")} />
+                <p className="dashboard-hero__description">{t("A little planning. A world of possibilities.")}</p>
+                <Link className="button button--accent" to="/trips"><span aria-hidden="true">＋</span>{t("Plan your next trip")}</Link>
+              </div>
+              <div className="journey-art" aria-hidden="true">
+                <span className="journey-art__sun" /><span className="journey-art__ridge journey-art__ridge--back" /><span className="journey-art__ridge journey-art__ridge--front" />
+                <span className="journey-art__trail" /><span className="journey-art__compass">✦</span>
+                <span className="journey-art__caption">WANDER MORE</span>
+              </div>
+            </section>
             <DepartureAlerts />
             {tripsError && <div role="alert"><p>{tripsError}</p><button className="button" onClick={refreshTrips}>{t("Retry loading trips")}</button></div>}
-            <div className="journey-overview">
-              {(["current", "upcoming", "completed"] as TripStatus[]).map(status => <Link key={status} to={`/trips?status=${status}`}><strong>{tripsByStatus[status].length}</strong><span>{t(status)}{" "}{t("trips")}</span></Link>)}
+            <div className="journey-overview" aria-busy={isLoadingTrips}>
+              {(["current", "upcoming", "completed"] as TripStatus[]).map((status, index) => <Link key={status} className={`journey-stat journey-stat--${status}`} to={`/trips?status=${status}`}><span className="journey-stat__label"><span className={`status-dot status-dot--${status}`} />{t(status)}{" "}{t("trips")}</span>{" "}<strong>{isLoadingTrips || tripsError ? "—" : tripsByStatus[status].length}</strong>{" "}<span className="journey-stat__footer">{t(["Enjoy the moment", "Something to look forward to", "Memories made"][index])}<span aria-hidden="true">↗</span></span></Link>)}
             </div>
-            <Link className="button" to="/trips">{t("Plan your next trip")}</Link>
+            <section className="dashboard-journeys" aria-labelledby="journeys-heading">
+              <div className="section-heading"><h2 id="journeys-heading">{t("On the horizon")}</h2><Link className="text-link" to="/trips?status=all">{t("View all trips")} <span aria-hidden="true">↗</span></Link></div>
+              {isLoadingTrips ? <p role="status">{t("Loading trips…")}</p> : !tripsError && (
+                tripsByStatus.current.length + tripsByStatus.upcoming.length > 0
+                  ? <div className="trip-grid">{[...tripsByStatus.current, ...tripsByStatus.upcoming].slice(0, 3).map(trip => <TripCard key={trip.id} trip={trip} status={tripsByStatus.current.includes(trip) ? "current" : "upcoming"} />)}</div>
+                  : <div className="empty-state dashboard-empty"><span aria-hidden="true">✦</span><h3>{t("Your map is wide open")}</h3><p>{t("Add your next trip and start counting down the days.")}</p><Link className="text-link" to="/trips">{t("Create a trip")} <span aria-hidden="true">↗</span></Link></div>
+              )}
+            </section>
           </>} />
           <Route path="/trips" element={<TripsPage trips={trips} isLoading={isLoadingTrips} error={tripsError} onRetry={refreshTrips} onTripAdded={trip => setTrips(currentTrips => [...currentTrips, trip])} />} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />

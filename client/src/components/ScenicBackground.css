@@ -1,0 +1,9 @@
+.scenic-background { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: #b5c9c5; }
+.scenic-background__image { position: absolute; inset: -4%; background: url('/images/alpine-lake.jpg') center / cover no-repeat; animation: scenic-drift 42s ease-in-out infinite alternate; }
+.scenic-background__wash { position: absolute; inset: 0; background: linear-gradient(120deg, rgb(235 242 232 / 22%), rgb(235 242 232 / 5%) 60%, rgb(27 61 53 / 12%)); }
+.scenic-background--paused .scenic-background__image { animation-play-state: paused; }
+.background-motion { position: fixed; z-index: 25; inset-inline-start: 24px; bottom: 20px; display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 8px 12px; border: 1px solid rgb(255 255 255 / 55%); border-radius: 30px; color: #233c35; background: rgb(255 254 250 / 94%); box-shadow: 0 3px 12px rgb(20 45 35 / 8%); font-size: 11px; font-weight: 600; }
+.background-motion:hover { background: #fff; }
+@keyframes scenic-drift { from { transform: scale(1) translate3d(-.6%, 0, 0); } to { transform: scale(1.07) translate3d(.6%, -.8%, 0); } }
+@media (max-width: 880px) { .background-motion { inset-inline-start: auto; inset-inline-end: 16px; bottom: calc(94px + env(safe-area-inset-bottom)); } }
+@media (prefers-reduced-motion: reduce) { .scenic-background__image { animation: none; } .background-motion { display: none; } }

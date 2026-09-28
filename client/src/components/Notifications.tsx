@@ -117,7 +117,7 @@ export default function NotificationsPage() {
     <div className="notification-controls">
       <button className="button button--ghost" disabled={!state.preferences || state.preferencesBusy} onClick={() => void state.enable()}>{t(state.preferences?.browserNotifications ? 'Turn off browser alerts' : 'Enable browser alerts')}</button>
       {state.preferences?.browserNotifications && !state.enabled && <button className="button button--ghost" disabled={state.preferencesBusy} onClick={() => void state.enable(true)}>{t('Allow browser alerts on this device')}</button>}
-      <p>{t('Browser preference is saved to your account. Allow alerts on each device; Wanderly must remain open.')}</p>
+      <p>{t('Browser preference is saved to your account. Allow alerts on each device; TripPlanner must remain open.')}</p>
       {!state.preferences && !state.preferencesError && <p role="status">{t('Loading notification preferences…')}</p>}
       {state.preferences && <label className="notification-email-option"><input type="checkbox" checked={state.preferences.emailReminders} disabled={state.preferencesBusy || (!state.preferences.emailAvailable && !state.preferences.emailReminders)} onChange={event => void state.saveEmail(event.target.checked)} />{t('Email me new due reminders')}</label>}
       <p>{t('Email reminders apply to notifications created after you opt in. Your in-app notification center remains available.')}</p>

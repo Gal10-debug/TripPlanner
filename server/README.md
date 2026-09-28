@@ -16,7 +16,7 @@ Configure these environment variables in the server's deployment secrets/setting
 | `Email__Smtp__Host` | Your SMTP provider's hostname |
 | `Email__Smtp__Port` | `587` for STARTTLS (default), or your provider's port |
 | `Email__Smtp__FromAddress` | A sender address verified by your provider |
-| `Email__Smtp__FromName` | Optional display name; defaults to `Wanderly` |
+| `Email__Smtp__FromName` | Optional display name; defaults to `TripPlanner` |
 | `Email__Smtp__Username` | SMTP username |
 | `Email__Smtp__Password` | SMTP password or provider SMTP key |
 | `Email__Smtp__UseImplicitTls` | `false` for required STARTTLS (default); `true` for implicit TLS, normally port 465 |

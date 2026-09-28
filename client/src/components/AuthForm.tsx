@@ -76,7 +76,7 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
     return (
         <form className="auth-form" onSubmit={handleSubmit}>
             <div className="auth-heading">
-                <span className="eyebrow">{mode === "login" ? t("Welcome back") : mode === "register" ? t("Join Wanderly") : t("Account recovery")}</span>
+                <span className="eyebrow">{mode === "login" ? t("Welcome back") : mode === "register" ? t("Join TripPlanner") : t("Account recovery")}</span>
                 <h2>{t(heading)}</h2>
                 <p>{mode === "login" ? t("Sign in to pick up where you left off.") : mode === "register" ? t("Create an account to save your plans in one place.") : mode === "forgot" ? t("Enter the email connected to your account.") : t("Use the reset code to secure your account with a new password.")}</p>
             </div>
@@ -117,7 +117,7 @@ function AuthForm({ onAuthenticated }: AuthFormProps) {
             {mode === "forgot" && <button className="forgot-password" type="button" onClick={() => { setMode("reset"); setError(""); setMessage(""); }}>{t("I already have a reset code")}</button>}
             {mode === "reset" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setResetToken(""); setError(""); setMessage(""); }}>{t("Request another reset code")}</button>}
             {mode === "login" && <button className="forgot-password" type="button" onClick={() => { setMode("forgot"); setError(""); setMessage(""); }}>{t("Forgot your password?")}</button>}
-            <p className="auth-switch">{mode === "login" ? t("New to Wanderly?") : t("Ready to sign in?")}<button type="button" onClick={switchMode}>{mode === "login" ? t("Create an account") : t("Sign in")}</button></p>
+            <p className="auth-switch">{mode === "login" ? t("New to TripPlanner?") : t("Ready to sign in?")}<button type="button" onClick={switchMode}>{mode === "login" ? t("Create an account") : t("Sign in")}</button></p>
         </form>
     );
 }

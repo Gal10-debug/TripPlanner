@@ -16,7 +16,7 @@ public sealed class SmtpOptions
     public string Host { get; set; } = "";
     public int Port { get; set; } = 587;
     public string FromAddress { get; set; } = "";
-    public string FromName { get; set; } = "Wanderly";
+    public string FromName { get; set; } = "TripPlanner";
     public string Username { get; set; } = "";
     public string Password { get; set; } = "";
     public bool UseImplicitTls { get; set; }
@@ -58,10 +58,10 @@ public sealed class PasswordResetEmailSender(SmtpEmailTransport transport) : IPa
 {
     public bool IsConfigured => transport.IsConfigured;
     public Task SendAsync(string email, string token, CancellationToken cancellationToken) => transport.SendAsync(email,
-        "Reset your Wanderly password", $"""
-        A password reset was requested for your Wanderly account.
+        "Reset your TripPlanner password", $"""
+        A password reset was requested for your TripPlanner account.
 
-        Return to Wanderly, select "Forgot your password?", then "I already have a reset code".
+        Return to TripPlanner, select "Forgot your password?", then "I already have a reset code".
         Enter this email address, paste the full code below, and choose a new password.
         The code expires after one hour and can only be used once.
 

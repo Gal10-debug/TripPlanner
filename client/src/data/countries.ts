@@ -5,7 +5,7 @@ const codes = "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG
 const english = new Intl.DisplayNames(['en'], { type: 'region' });
 const hebrew = new Intl.DisplayNames(['he'], { type: 'region' });
 const aliases: Record<string, string[]> = {
-  US: ['USA', 'United States of America'], GB: ['UK', 'Great Britain', 'Britain'],
+  US: ['USA', 'United States of America'], GB: ['UK', 'U.K.', 'Great Britain', 'Great Britian', 'Britain', 'Britian', 'England', 'Scotland', 'Wales', 'Northern Ireland', 'United Kingdom of Great Britain and Northern Ireland'],
   AE: ['UAE'], KR: ['Republic of Korea'], CZ: ['Czech Republic'], TR: ['Turkey', 'Türkiye'],
   VA: ['Vatican City', 'Holy See'], CI: ['Ivory Coast'], TW: ['Taiwan'], PS: ['Palestine'],
 };
