@@ -1,3 +1,4 @@
+import CountryCityFields from "./CountryCityFields";
 import { t } from "../i18n/preferences";
 import { useState } from "react";
 import { addTrip } from "../services/tripServices";
@@ -13,6 +14,7 @@ function TripForm({ onTripAdded }: TripFormProps) {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const [error, setError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     async function handleAddTrip() {
         if (!destination.trim() || !country.trim() || !startDate || !endDate) {
@@ -32,44 +34,32 @@ function TripForm({ onTripAdded }: TripFormProps) {
             endDate
         };
 
-        const createdTrip = await addTrip(newTrip);
-
-        onTripAdded(createdTrip);
-
-        setDestination("");
-        setCountry("");
-        setStartDate("");
-        setEndDate("");
+        setIsSaving(true);
         setError("");
+        try {
+            const createdTrip = await addTrip(newTrip);
+            onTripAdded(createdTrip);
+            setDestination(""); setCountry(""); setStartDate(""); setEndDate("");
+        } catch (saveError) {
+            setError(saveError instanceof Error ? saveError.message : "Failed to add trip");
+        } finally { setIsSaving(false); }
     }
 
     return (
-        <div>
+        <form onSubmit={event => { event.preventDefault(); if (!isSaving) void handleAddTrip(); }}>
             <h2>{t("Trip Form")}</h2>
 
-            <input
-                type="text"
-                placeholder={t("Destination")}
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-            />
-
-            <input
-                type="text"
-                placeholder={t("Country")}
-                value={country}
-                onChange={(e) => setCountry(e.target.value)}
-            />
+            <CountryCityFields country={country} destination={destination} onCountryChange={setCountry} onDestinationChange={setDestination} disabled={isSaving} />
 
             <label>{t("Start date")}<input
-                    type="date"
+                    type="date" disabled={isSaving}
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                 />
             </label>
 
             <label>{t("End date")}<input
-                    type="date"
+                    type="date" disabled={isSaving}
                     min={startDate}
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
@@ -78,8 +68,8 @@ function TripForm({ onTripAdded }: TripFormProps) {
 
             {error && <p role="alert">{t(error)}</p>}
 
-            <button onClick={handleAddTrip}>{t("Add Trip")}</button>
-        </div>
+            <button type="submit" disabled={isSaving}>{t(isSaving ? "Saving…" : "Add Trip")}</button>
+        </form>
     );
 }
 

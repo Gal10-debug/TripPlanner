@@ -82,6 +82,13 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - All 89 frontend and 53 backend tests, build, and lint pass. Tests use fake email senders; no real email was sent. API restarted; migration and protected preferences endpoint verified.
    - Deployment requires SMTP configuration. Live SMTP, native browser alerts, print layout, and visual checks remain pending.
 
+12. Country and city autocomplete — implemented on `feature/country-city-autocomplete` (based on step 11).
+   - Country-first autocomplete in both new-trip and edit-trip forms, with all 249 ISO country/territory codes plus Kosovo and English/Hebrew names.
+   - City suggestions are filtered by the selected country code, show region labels, and support keyboard/pointer selection. Changing country clears the city and cancels old lookups.
+   - Debounced, cached, cancellable lookups with timeout/retry, empty/error messages, and manual city entry when a suggestion is missing or unavailable.
+   - Create-trip submissions now show save failures, retain entered values, and disable repeated submits while saving.
+   - 99 frontend tests, build, and lint pass. A live country-filtered lookup passed. Visual browser verification remains pending; no backend/schema changes.
+
 Add a Budget navigation entry when its cross-trip page is functional.
 
 ## Deployment requirement

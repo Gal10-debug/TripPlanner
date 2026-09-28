@@ -57,7 +57,7 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 .planner-layout { display: grid; grid-template-columns: 340px 1fr; gap: 48px; margin-top: 54px; align-items: start; }
 .trip-form-card { padding: 28px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 18px 50px rgba(44,67,60,.08); }
 .trip-form-card h2 { margin-bottom: 24px; font: 600 25px 'Playfair Display',serif; color: var(--ink); }
-.trip-form-card > div { display: flex; flex-direction: column; gap: 14px; }
+.trip-form-card > :is(div, form) { display: flex; flex-direction: column; gap: 14px; }
 .trip-form-card label,.trip-grid label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .trip-form-card button,.trip-grid button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 9px; color: white; background: var(--green); font-weight: 700; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
@@ -484,3 +484,19 @@ input:focus,textarea:focus { border-color: #588074; box-shadow: 0 0 0 4px rgba(5
 
 .notification-email-option { display: flex; align-items: center; gap: 10px; }
 .notification-email-option input { width: auto; }
+
+.country-city-fields { display: grid; gap: 14px; min-width: 0; }
+.location-autocomplete { position: relative; min-width: 0; }
+.location-autocomplete label { margin-bottom: 7px; }
+.location-options { position: absolute; inset-inline: 0; top: calc(100% + 4px); z-index: 20; list-style: none; padding: 4px; margin: 0; max-height: 250px; overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 10px 25px rgba(0,0,0,.12); }
+.location-options li { padding: 10px 12px; cursor: pointer; border-radius: 6px; color: var(--ink); }
+.location-options li[aria-selected="true"] { background: #e8efe9; }
+.location-options li span,.location-options li small { display: block; }
+.location-options li small,.location-hint,.location-attribution { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.location-hint { display: block; margin-top: 6px; }
+.location-attribution a { color: inherit; }
+.location-autocomplete input:disabled { opacity: .65; cursor: not-allowed; }
+
+.location-autocomplete__input { position: relative; }
+.location-autocomplete input:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.trip-card--editing { overflow: visible; }

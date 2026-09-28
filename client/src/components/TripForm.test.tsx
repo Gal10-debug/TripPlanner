@@ -1,0 +1,41 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import TripForm from './TripForm';
+import { addTrip } from '../services/tripServices';
+import { searchCities } from '../services/locationServices';
+import type { Trip } from '../models/Trip';
+vi.mock('../services/tripServices', () => ({ addTrip: vi.fn() }));
+vi.mock('../services/locationServices', () => ({ searchCities: vi.fn() }));
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(searchCities).mockResolvedValue([{ id: '1', name: 'Paris', region: 'Île-de-France', countryCode: 'FR' }]); });
+afterEach(cleanup);
+it('submits the selected country and city and resets the form after success', async () => {
+  const saved = { id: 10, destination: 'Paris', country: 'France' } as Trip;
+  vi.mocked(addTrip).mockResolvedValue(saved);
+  const onTripAdded = vi.fn();
+  render(<TripForm onTripAdded={onTripAdded} />);
+  fireEvent.change(screen.getByRole('combobox', { name: 'Country' }), { target: { value: 'Fran' } });
+  fireEvent.click(screen.getByRole('option', { name: 'France' }));
+  fireEvent.change(screen.getByRole('combobox', { name: 'Destination' }), { target: { value: 'Par' } });
+  fireEvent.click(await screen.findByRole('option', { name: 'Paris, Île-de-France' }));
+  fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '2030-01-01' } });
+  fireEvent.change(screen.getByLabelText('End date'), { target: { value: '2030-01-03' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Add Trip' }));
+  await screen.findByRole('button', { name: 'Add Trip' });
+  expect(addTrip).toHaveBeenCalledWith({ destination: 'Paris', country: 'France', startDate: '2030-01-01', endDate: '2030-01-03' });
+  expect(onTripAdded).toHaveBeenCalledWith(saved);
+  expect(screen.getByRole('combobox', { name: 'Country' })).toHaveProperty('value', '');
+  expect(screen.getByRole('combobox', { name: 'Destination' })).toHaveProperty('disabled', true);
+});
+it('retains manually entered values and offers another save after an API error', async () => {
+  vi.mocked(addTrip).mockRejectedValue(new Error('Unable to save trip'));
+  render(<TripForm onTripAdded={vi.fn()} />);
+  fireEvent.change(screen.getByRole('combobox', { name: 'Country' }), { target: { value: 'Italy' } });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Destination' }), { target: { value: 'Small village' } });
+  fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '2030-01-01' } });
+  fireEvent.change(screen.getByLabelText('End date'), { target: { value: '2030-01-03' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Add Trip' }));
+  expect(await screen.findByRole('alert')).toHaveProperty('textContent', 'Unable to save trip');
+  expect(screen.getByRole('combobox', { name: 'Destination' })).toHaveProperty('value', 'Small village');
+  expect(screen.getByRole('button', { name: 'Add Trip' })).toHaveProperty('disabled', false);
+});

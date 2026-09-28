@@ -79,7 +79,7 @@ it('localizes the trip list without changing route parameters or user content', 
   render(<MemoryRouter initialEntries={['/trips?status=upcoming']}><TripsPage trips={[trip]} isLoading={false} error="" onRetry={vi.fn()} onTripAdded={vi.fn()} /></MemoryRouter>);
   expect(screen.getByLabelText('חיפוש נסיעות')).toBeTruthy();
   expect(screen.getByRole('link', { name: 'פתיחת הנסיעה אל Rome, Italy' }).getAttribute('href')).toBe('/trips/1');
-  expect(screen.getByRole('combobox')).toHaveProperty('value', 'date-asc');
+  expect(screen.getByRole('combobox', { name: 'מיון נסיעות' })).toHaveProperty('value', 'date-asc');
   expect(screen.getByText('בקרוב', { selector: '.trip-status' }).className).toContain('trip-status--upcoming');
 });
 it('localizes calendar weekdays and leaves date-only values on their original day', async () => {
