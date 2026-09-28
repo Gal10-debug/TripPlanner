@@ -28,7 +28,7 @@ it('loads the profile and saves preferences with Hebrew labels and RTL', async (
   vi.mocked(saveSettings).mockResolvedValue(changed);
   render(<MemoryRouter><SettingsPage /></MemoryRouter>);
   fireEvent.change(await screen.findByLabelText('Display name'), { target: { value: 'גל' } });
-  fireEvent.change(screen.getByLabelText('Language'), { target: { value: 'he' } });
+  fireEvent.change(screen.getByRole('combobox', { name: 'Language' }), { target: { value: 'he' } });
   fireEvent.change(screen.getByLabelText('Time zone'), { target: { value: 'Asia/Jerusalem' } });
   fireEvent.change(screen.getByLabelText('Default currency'), { target: { value: 'ILS' } });
   expect(document.documentElement.dir).toBe('ltr');
@@ -37,6 +37,7 @@ it('loads the profile and saves preferences with Hebrew labels and RTL', async (
   expect(saveSettings).toHaveBeenCalledWith(expect.objectContaining(changed));
   expect(document.documentElement.dir).toBe('rtl');
   expect(document.documentElement.lang).toBe('he');
+  expect(screen.getByRole('combobox', { name: 'שפה' })).toHaveProperty('value', 'he');
   expect(screen.getByLabelText('כתובת דוא״ל')).toHaveProperty('readOnly', true);
   expect(screen.getByRole('heading', { name: 'הגדרות' })).toBeTruthy();
   expect(getPreferences().defaultCurrency).toBe('ILS');

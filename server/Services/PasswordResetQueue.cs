@@ -1,3 +1,4 @@
+using server.Infrastructure;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -118,7 +119,7 @@ public sealed class PasswordResetQueue(
             .ExecuteUpdateAsync(s => s.SetProperty(d => d.Status, status).SetProperty(d => d.ProtectedPayload, ""), cancellationToken);
 }
 
-public sealed class PasswordResetWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<PasswordResetWorker> logger) : BackgroundService
+public sealed class PasswordResetWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<PasswordResetWorker> logger, WorkerHealth health) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -132,6 +133,7 @@ public sealed class PasswordResetWorker(IServiceScopeFactory scopes, IConfigurat
                 {
                     using var scope = scopes.CreateScope();
                     await scope.ServiceProvider.GetRequiredService<PasswordResetQueue>().DeliverAsync(stoppingToken);
+                health.Succeeded("password-reset");
                 }
                 catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
                 catch (Exception exception)

@@ -1,3 +1,4 @@
+using server.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.Models;
@@ -31,7 +32,7 @@ public class NotificationService(TripPlannerContext context, ReminderService rem
     }
 }
 
-public class NotificationWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<NotificationWorker> logger) : BackgroundService
+public class NotificationWorker(IServiceScopeFactory scopes, IConfiguration configuration, ILogger<NotificationWorker> logger, WorkerHealth health) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -44,6 +45,7 @@ public class NotificationWorker(IServiceScopeFactory scopes, IConfiguration conf
                 using var scope = scopes.CreateScope();
                 await scope.ServiceProvider.GetRequiredService<NotificationService>().GenerateAsync(stoppingToken);
                 await scope.ServiceProvider.GetRequiredService<ReminderEmailDelivery>().DeliverAsync(stoppingToken);
+                health.Succeeded("notifications");
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { return; }
             catch (Exception exception) { logger.LogError("Reminder notification check failed ({ErrorType}); retrying in one minute.", exception.GetType().Name); }
