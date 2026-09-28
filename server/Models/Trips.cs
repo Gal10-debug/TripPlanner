@@ -14,6 +14,8 @@ public class Trip
 
     public string Country { get; set; } = string.Empty;
 
+    public DateTimeOffset? CreatedAt { get; set; }
+
     public DateOnly StartDate { get; set; }
 
     public DateOnly EndDate { get; set; }

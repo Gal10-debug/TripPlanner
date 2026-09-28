@@ -54,6 +54,8 @@ public class TripsController(TripPlannerContext context, TripAccessService acces
         var trip = new Trip
         {
             UserId = UserId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            BudgetCurrency = await context.AccountSettings.Where(settings => settings.UserId == UserId).Select(settings => settings.DefaultCurrency).FirstOrDefaultAsync() ?? "USD",
             Destination = request.Destination,
             Country = request.Country,
             StartDate = request.StartDate,

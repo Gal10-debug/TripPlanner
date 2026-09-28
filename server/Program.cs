@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +14,16 @@ builder.Services.AddDbContext<TripPlannerContext>(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TripAccessService>();
 builder.Services.AddScoped<ReminderService>();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddHostedService<NotificationWorker>();
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+builder.Services.AddTransient<SmtpEmailTransport>();
+builder.Services.AddTransient<IPasswordResetEmailSender, PasswordResetEmailSender>();
+builder.Services.AddTransient<IReminderEmailSender, ReminderEmailSender>();
+builder.Services.AddScoped<ReminderEmailDelivery>();
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(1));
 builder.Services.AddHttpClient<WeatherService>(client => client.Timeout = TimeSpan.FromSeconds(8));
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
     {
@@ -74,10 +85,23 @@ app.MapGet("/api/auth/me", (HttpContext context) =>
 app.MapPost("/api/auth/forgot-password", async (
     ForgotPasswordRequest request,
     UserManager<IdentityUser> userManager,
-    IHostEnvironment environment) =>
+    IHostEnvironment environment,
+    IPasswordResetEmailSender emailSender,
+    ILogger<Program> logger,
+    CancellationToken cancellationToken) =>
 {
-    const string message = "If an account exists for that email, password reset instructions have been created.";
-    var user = await userManager.FindByEmailAsync(request.Email);
+    if (string.IsNullOrWhiteSpace(request.Email) || !new EmailAddressAttribute().IsValid(request.Email))
+        return Results.BadRequest(new { detail = "Enter a valid email address." });
+
+    // Check before looking up the account, so configuration failures don't reveal registered emails.
+    if (!environment.IsDevelopment() && !emailSender.IsConfigured)
+    {
+        logger.LogError("Password reset email delivery is not configured.");
+        return Results.Problem(statusCode: 503, detail: "Password reset is temporarily unavailable. Please try again later.");
+    }
+
+    const string message = "If an account exists for that email, you will receive a reset code.";
+    var user = await userManager.FindByEmailAsync(request.Email.Trim());
 
     if (user is null)
     {
@@ -86,7 +110,21 @@ app.MapPost("/api/auth/forgot-password", async (
 
     var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-    // Until an email provider is configured, expose the token only when running locally.
+    if (emailSender.IsConfigured)
+    {
+        try
+        {
+            await emailSender.SendAsync(user.Email!, token, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            // Do not log tokens, recipient addresses, credentials, or SMTP response bodies.
+            logger.LogError("Password reset email delivery failed ({FailureType}).", exception.GetType().Name);
+            // Keep the response identical for known and unknown accounts.
+        }
+    }
+
+    // Preserve the local development shortcut; never expose a token in production.
     return Results.Ok(new
     {
         message,
@@ -98,7 +136,11 @@ app.MapPost("/api/auth/reset-password", async (
     ResetPasswordRequest request,
     UserManager<IdentityUser> userManager) =>
 {
-    var user = await userManager.FindByEmailAsync(request.Email);
+    if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.ResetToken)
+        || string.IsNullOrWhiteSpace(request.NewPassword))
+        return Results.BadRequest(new { detail = "Email, reset code, and new password are required." });
+
+    var user = await userManager.FindByEmailAsync(request.Email.Trim());
     if (user is null)
     {
         return Results.BadRequest(new { detail = "The reset code is invalid or has expired." });
@@ -120,3 +162,5 @@ app.Run();
 
 record ForgotPasswordRequest(string Email);
 record ResetPasswordRequest(string Email, string ResetToken, string NewPassword);
+
+public partial class Program { }

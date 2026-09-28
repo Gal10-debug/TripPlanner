@@ -6,6 +6,7 @@ namespace server.Services;
 
 public class ReminderService(TripPlannerContext context)
 {
+    private static readonly SemaphoreSlim Gate = new(1, 1);
     private static readonly (string Title, int DaysBefore)[] Defaults =
     [
         ("Check passports and travel documents", 14),
@@ -15,6 +16,9 @@ public class ReminderService(TripPlannerContext context)
 
     public async Task EnsureDefaultsAsync(Trip trip)
     {
+        await Gate.WaitAsync();
+        try
+        {
         var existing = await context.TripReminders
             .Where(reminder => reminder.TripId == trip.Id && reminder.IsAutomatic)
             .ToListAsync();
@@ -34,5 +38,7 @@ public class ReminderService(TripPlannerContext context)
         }
 
         await context.SaveChangesAsync();
+        }
+        finally { Gate.Release(); }
     }
 }

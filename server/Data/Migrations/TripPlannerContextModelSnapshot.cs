@@ -209,6 +209,39 @@ namespace server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("server.Models.AccountSettings", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("BrowserNotifications")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DefaultCurrency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("EmailReminders")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("AccountSettings");
+                });
+
             modelBuilder.Entity("server.Models.Expense", b =>
                 {
                     b.Property<int>("Id")
@@ -330,6 +363,9 @@ namespace server.Data.Migrations
 
                     b.Property<string>("Country")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Destination")
@@ -465,6 +501,45 @@ namespace server.Data.Migrations
                     b.ToTable("TripReminders");
                 });
 
+            modelBuilder.Entity("server.Models.UserNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EmailAttempts")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("EmailNextAttemptUtcTicks")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EmailStatus")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReminderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReminderId");
+
+                    b.HasIndex("UserId", "ReminderId", "DueDate")
+                        .IsUnique();
+
+                    b.ToTable("UserNotifications");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -512,6 +587,15 @@ namespace server.Data.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("server.Models.AccountSettings", b =>
+                {
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithOne()
+                        .HasForeignKey("server.Models.AccountSettings", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -602,6 +686,21 @@ namespace server.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Trip");
+                });
+
+            modelBuilder.Entity("server.Models.UserNotification", b =>
+                {
+                    b.HasOne("server.Models.TripReminder", null)
+                        .WithMany()
+                        .HasForeignKey("ReminderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("server.Models.Trip", b =>

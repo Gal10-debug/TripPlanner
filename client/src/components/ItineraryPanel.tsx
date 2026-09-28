@@ -1,8 +1,12 @@
+import { directionsUrl, mapSearchUrl, placeQuery } from "../utils/maps";
+import { t, getPreferences } from "../i18n/preferences";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { ItineraryItem, ItineraryItemRequest } from "../models/ItineraryItem";
 import { addItineraryItem, deleteItineraryItem, getItinerary, updateItineraryItem } from "../services/itineraryServices";
 
 interface ItineraryPanelProps {
+    destination?: string;
+    country?: string;
     tripId: number;
     startDate: string;
     endDate: string;
@@ -11,7 +15,7 @@ interface ItineraryPanelProps {
 
 const emptyItem = (date: string): ItineraryItemRequest => ({ title: "", date, time: "09:00", location: "", note: "" });
 
-function ItineraryPanel({ tripId, startDate, endDate, canEdit }: ItineraryPanelProps) {
+function ItineraryPanel({ destination, country, tripId, startDate, endDate, canEdit }: ItineraryPanelProps) {
     const [items, setItems] = useState<ItineraryItem[]>([]);
     const [draft, setDraft] = useState<ItineraryItemRequest>(() => emptyItem(startDate));
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -84,24 +88,24 @@ function ItineraryPanel({ tripId, startDate, endDate, canEdit }: ItineraryPanelP
 
     return <section className="itinerary-panel">
         <div className="itinerary-heading">
-            <div><span className="eyebrow">Daily itinerary</span><h3>Plan each day</h3></div>
-            {!isAdding && canEdit && <button className="text-action" onClick={() => setIsAdding(true)}>+ Add activity</button>}
+            <div><span className="eyebrow">{t("Daily itinerary")}</span><h3>{t("Plan each day")}</h3></div>
+            {!isAdding && canEdit && <button className="text-action" onClick={() => setIsAdding(true)}>{t("+ Add activity")}</button>}
         </div>
 
         {isAdding && <form className="activity-form" onSubmit={submitItem}>
-            <div className="activity-form__row"><label>Activity<input value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} placeholder="Museum visit, dinner…" maxLength={200} required /></label><label>Day<input type="date" min={startDate} max={endDate} value={draft.date} onChange={event => setDraft({ ...draft, date: event.target.value })} required /></label><label>Time<input type="time" value={draft.time} onChange={event => setDraft({ ...draft, time: event.target.value })} required /></label></div>
-            <label>Location<input value={draft.location} onChange={event => setDraft({ ...draft, location: event.target.value })} placeholder="Address or meeting point" maxLength={300} /></label>
-            <label>Note<textarea value={draft.note} onChange={event => setDraft({ ...draft, note: event.target.value })} placeholder="Tickets, what to bring, or anything useful…" maxLength={2000} /></label>
-            <div className="card-actions"><button type="submit" disabled={isSaving}>{isSaving ? "Saving…" : editingId === null ? "Add activity" : "Save activity"}</button><button type="button" className="secondary-action" onClick={closeForm}>Cancel</button></div>
+            <div className="activity-form__row"><label>{t("Activity")}<input value={draft.title} onChange={event => setDraft({ ...draft, title: event.target.value })} placeholder={t("Museum visit, dinner…")} maxLength={200} required /></label><label>{t("Day")}<input type="date" min={startDate} max={endDate} value={draft.date} onChange={event => setDraft({ ...draft, date: event.target.value })} required /></label><label>{t("Time")}<input type="time" value={draft.time} onChange={event => setDraft({ ...draft, time: event.target.value })} required /></label></div>
+            <label>{t("Location")}<input value={draft.location} onChange={event => setDraft({ ...draft, location: event.target.value })} placeholder={t("Address or meeting point")} maxLength={300} /></label>
+            <label>{t("Note")}<textarea value={draft.note} onChange={event => setDraft({ ...draft, note: event.target.value })} placeholder={t("Tickets, what to bring, or anything useful…")} maxLength={2000} /></label>
+            <div className="card-actions"><button type="submit" disabled={isSaving}>{isSaving ? t("Saving…") : editingId === null ? t("Add activity") : t("Save activity")}</button><button type="button" className="secondary-action" onClick={closeForm}>{t("Cancel")}</button></div>
         </form>}
 
-        {error && <p className="alert" role="alert">{error}</p>}
-        {isLoading ? <p className="itinerary-status">Loading your plans…</p> : groupedItems.length === 0 && !isAdding ? <div className="itinerary-empty"><span>◷</span><p>No activities planned yet. Add the first moment to your itinerary.</p></div> :
+        {error && <p className="alert" role="alert">{t(error)}</p>}
+        {isLoading ? <p className="itinerary-status">{t("Loading your plans…")}</p> : groupedItems.length === 0 && !isAdding ? <div className="itinerary-empty"><span>◷</span><p>{t("No activities planned yet. Add the first moment to your itinerary.")}</p></div> :
             <div className="itinerary-days">{groupedItems.map(([date, dayItems], dayIndex) => <section className="itinerary-day" key={date}>
-                <div className="day-label"><span>Day {daysBetween(startDate, date) + 1}</span><strong>{formatDay(date)}</strong></div>
+                <div className="day-label"><span>{t("Day")}{" "}{daysBetween(startDate, date) + 1}</span><strong>{formatDay(date)}</strong></div>
                 <div className="day-timeline">{dayItems.map(item => <article className="activity-item" key={item.id}>
                     <time>{formatTime(item.time)}</time><span className="timeline-dot" aria-hidden="true" />
-                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <span>⌖ {item.location}</span>}{item.note && <p>{item.note}</p>}{canEdit && <div className="activity-actions"><button onClick={() => editItem(item)}>Edit</button><button onClick={() => removeItem(item.id)}>Delete</button></div>}</div>
+                    <div className="activity-copy"><strong>{item.title}</strong>{item.location && <><span>⌖ {item.location}</span><div className="map-links"><a href={mapSearchUrl(placeQuery(item.location, destination, country))} target="_blank" rel="noreferrer">{t("View activity on map")} ↗</a><a href={directionsUrl(placeQuery(item.location, destination, country))} target="_blank" rel="noreferrer">{t("Get directions")} ↗</a></div></>}{item.note && <p>{item.note}</p>}{canEdit && <div className="activity-actions"><button onClick={() => editItem(item)}>{t("Edit")}</button><button onClick={() => removeItem(item.id)}>{t("Delete")}</button></div>}</div>
                 </article>)}</div>
                 {dayIndex < groupedItems.length - 1 && <div className="day-divider" />}
             </section>)}</div>}
@@ -117,12 +121,12 @@ function daysBetween(start: string, date: string) {
 }
 
 function formatDay(date: string) {
-    return new Intl.DateTimeFormat("en", { weekday: "long", month: "short", day: "numeric" }).format(new Date(`${date}T00:00:00`));
+    return new Intl.DateTimeFormat(getPreferences().language, { weekday: "long", month: "short", day: "numeric" }).format(new Date(`${date}T00:00:00`));
 }
 
 function formatTime(time: string) {
     const [hours, minutes] = time.split(":").map(Number);
-    return new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit" }).format(new Date(2000, 0, 1, hours, minutes));
+    return new Intl.DateTimeFormat(getPreferences().language, { hour: "numeric", minute: "2-digit" }).format(new Date(2000, 0, 1, hours, minutes));
 }
 
 export default ItineraryPanel;
