@@ -171,3 +171,20 @@ it('restores saved account preferences on sign-in and resets them on logout', as
   expect(document.documentElement.dir).toBe('ltr');
   expect(getPreferences()).toEqual(defaultPreferences);
 });
+
+it('shows upcoming trips on the dashboard with working detail and filtered overview links', async () => {
+  vi.mocked(getTrips).mockResolvedValue([sampleTrip]);
+  open('/dashboard');
+  const tripLink = await screen.findByRole('link', { name: 'View trip to Rome, Italy' });
+  expect(tripLink.getAttribute('href')).toBe('/trips/123');
+  expect(screen.getByRole('link', { name: /upcoming trips 1/ }).getAttribute('href')).toBe('/trips?status=upcoming');
+  fireEvent.click(tripLink);
+  expect(await screen.findByRole('heading', { name: 'Rome', level: 1 })).toBeTruthy();
+});
+
+it('offers a trip creation path from an empty dashboard', async () => {
+  open('/dashboard');
+  expect(await screen.findByRole('heading', { name: 'Your map is wide open' })).toBeTruthy();
+  fireEvent.click(screen.getByRole('link', { name: /Create a trip/ }));
+  expect(await screen.findByRole('heading', { name: 'Your trips', level: 1 })).toBeTruthy();
+});

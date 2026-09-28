@@ -23,9 +23,9 @@ public sealed class ReminderEmailSender(SmtpEmailTransport transport) : IReminde
             _ => reminder.Title
         } : reminder.Title;
         var body = hebrew
-            ? $"תזכורת לטיול: {reminder.Destination}\n{title}\nתאריך: {reminder.DueDate:yyyy-MM-dd}\n\nפתחו את Wanderly לפרטי הטיול. ניתן לכבות תזכורות בדוא״ל בעמוד ההתראות."
-            : $"Trip reminder: {reminder.Destination}\n{title}\nDue: {reminder.DueDate:yyyy-MM-dd}\n\nOpen Wanderly for trip details. You can turn off email reminders on the Notifications page.";
-        return transport.SendAsync(reminder.Email, hebrew ? "Wanderly — תזכורת לטיול" : "Wanderly — trip reminder", body, cancellationToken);
+            ? $"תזכורת לטיול: {reminder.Destination}\n{title}\nתאריך: {reminder.DueDate:yyyy-MM-dd}\n\nפתחו את TripPlanner לפרטי הטיול. ניתן לכבות תזכורות בדוא״ל בעמוד ההתראות."
+            : $"Trip reminder: {reminder.Destination}\n{title}\nDue: {reminder.DueDate:yyyy-MM-dd}\n\nOpen TripPlanner for trip details. You can turn off email reminders on the Notifications page.";
+        return transport.SendAsync(reminder.Email, hebrew ? "TripPlanner — תזכורת לטיול" : "TripPlanner — trip reminder", body, cancellationToken);
     }
 }
 
