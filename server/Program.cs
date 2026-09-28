@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.Services;
+using server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.ConfigureProductionHosting();
+builder.Services.AddSingleton<WorkerHealth>();
 builder.Services.AddPasswordResetRateLimiting();
 builder.Services.AddScoped<PasswordResetQueue>();
 builder.Services.AddHostedService<PasswordResetWorker>();
@@ -15,6 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<TripPlannerContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("TripPlanner")));
 builder.Services.AddAuthorization();
+builder.Services.Configure<SecurityStampValidatorOptions>(options => options.ValidationInterval = TimeSpan.Zero);
 builder.Services.AddScoped<TripAccessService>();
 builder.Services.AddScoped<ReminderService>();
 builder.Services.AddSingleton(TimeProvider.System);
@@ -40,26 +44,51 @@ builder.Services.Configure<CookieAuthenticationOptions>(
     {
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Strict;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
     });
-
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
-});
-
 
 var app = builder.Build();
+_ = app.Services.GetRequiredService<HostingSettings>();
 
+// A missing peer address cannot establish proxy trust (for example, a custom transport).
+app.UseWhen(context => context.Connection.RemoteIpAddress is not null, branch => branch.UseForwardedHeaders());
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health") && !context.Request.Path.StartsWithSegments("/ops"), branch => branch.UseHttpsRedirection());
+    app.UseExceptionHandler(handler => handler.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { detail = "An unexpected error occurred. Please try again." });
+    }));
+}
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    if (context.Request.Path.StartsWithSegments("/api")) context.Response.Headers.CacheControl = "no-store";
+    await next();
+});
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
+app.Use(async (context, next) =>
+{
+    // Identity bearer tickets may outlive account deletion; reject them as well as stale cookies.
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        var userId = context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var db = context.RequestServices.GetRequiredService<TripPlannerContext>();
+        if (userId is null || !await db.Users.AnyAsync(u => u.Id == userId, context.RequestAborted))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+    }
+    await next();
+});
 app.UseAuthorization();
 
 using (var scope = app.Services.CreateScope())
@@ -74,6 +103,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.MapOperations();
 app.MapControllers();
 var identityEndpoints = app.MapGroup("/api/auth");
 identityEndpoints.AddEndpointFilter(async (context, next) =>
@@ -159,6 +189,9 @@ app.MapPost("/api/auth/reset-password", async (
     return Results.NoContent();
 });
 
+// API misses must remain 404; only browser routes receive the React entry point.
+app.MapFallback("/api/{**path}", () => Results.NotFound());
+app.MapFallbackToFile("index.html");
 app.Run();
 
 record ForgotPasswordRequest(string Email);

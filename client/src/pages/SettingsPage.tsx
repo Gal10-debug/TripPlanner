@@ -1,3 +1,4 @@
+import AccountPrivacy from '../components/AccountPrivacy';
 import { Link } from 'react-router-dom';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { AccountSettings, Preferences, SettingsOptions } from '../models/AccountSettings';
@@ -20,6 +21,7 @@ export default function SettingsPage() {
         <div className="dashboard-intro"><span className="eyebrow">{t('Your account')}</span><h1>{t('Settings')}</h1><p>{t('Make TripPlanner feel like home.')}</p></div>
         <p><Link to="/notifications">{t('Notification preferences')}</Link></p>
         {error ? <div role="alert"><p>{t(error)}</p><button className="button" onClick={() => { setError(''); setAttempt(value => value + 1); }}>{t('Retry settings')}</button></div> : !data ? <p role="status">{t('Loading settings…')}</p> : <SettingsForm account={data.account} options={data.options} />}
+        {data && <AccountPrivacy />}
     </section>;
 }
 

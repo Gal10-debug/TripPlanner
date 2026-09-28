@@ -160,6 +160,7 @@ public class PasswordResetTests
 internal sealed class ResetApplication(string environment = "Production", bool expireTokens = false, string? sharedDatabasePath = null, DirectoryInfo? keyDirectory = null) : WebApplicationFactory<Program>
 {
     private readonly string databasePath = sharedDatabasePath ?? Path.Combine(Path.GetTempPath(), $"wanderly-reset-{Guid.NewGuid():N}.db");
+    public new HttpClient CreateClient() => base.CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
     public ResetClock Clock { get; } = new();
     public RecordingEmailSender Sender { get; } = new();
     public async Task DeliverPasswordResets()
@@ -180,6 +181,9 @@ internal sealed class ResetApplication(string environment = "Production", bool e
         builder.UseEnvironment(environment);
         builder.ConfigureAppConfiguration((_, configuration) => configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
+            ["Hosting:PublicOrigin"] = "https://localhost",
+            ["Hosting:DataProtectionPath"] = keyDirectory?.FullName ?? databasePath + "-keys",
+            ["Monitoring:Token"] = "test-monitoring-token",
             ["ConnectionStrings:TripPlanner"] = $"Data Source={databasePath};Pooling=False",
             ["Logging:LogLevel:Default"] = "Error",
             ["Notifications:DisableWorker"] = "true",
@@ -204,6 +208,7 @@ internal sealed class ResetApplication(string environment = "Production", bool e
         base.Dispose(disposing);
         if (disposing && sharedDatabasePath is null)
         {
+            if (Directory.Exists(databasePath + "-keys")) Directory.Delete(databasePath + "-keys", true);
             foreach (var suffix in new[] { "", "-wal", "-shm" }) File.Delete(databasePath + suffix);
         }
     }

@@ -1,0 +1,12 @@
+.git
+**/bin
+**/obj
+**/node_modules
+**/dist
+**/*.db*
+**/.env*
+**/playwright-report
+**/test-results
+**/__pycache__
+deploy/data
+deploy/backups

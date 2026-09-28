@@ -1,3 +1,4 @@
+import BudgetsPage from './pages/BudgetsPage';
 import NotificationsPage, { NotificationProvider, NotificationLink } from "./components/Notifications";
 import { t, defaultPreferences, setPreferences, todayKey, usePreferences } from "./i18n/preferences";
 import { getSettings } from "./services/settingsServices";
@@ -164,6 +165,7 @@ function App() {
       <nav className="app-navigation" aria-label={t("Main navigation")}>
         <NavLink to="/dashboard"><NavIcon name="dashboard" /><span>{t("Dashboard")}</span></NavLink>
         <NavLink to="/trips"><NavIcon name="trips" /><span>{t("Trips")}</span></NavLink>
+        <NavLink to="/budgets"><NavIcon name="budget" /><span>{t("Budgets")}</span></NavLink>
         <NavLink to="/calendar"><NavIcon name="calendar" /><span>{t("Calendar")}</span></NavLink>
         <NavLink to="/invitations"><NavIcon name="invitations" /><span>{t("Invitations")}</span></NavLink>
         <NavLink to="/settings"><NavIcon name="settings" /><span>{t("Settings")}</span></NavLink>
@@ -203,6 +205,7 @@ function App() {
           <Route path="/trips" element={<TripsPage trips={trips} isLoading={isLoadingTrips} error={tripsError} onRetry={refreshTrips} onTripAdded={trip => setTrips(currentTrips => [...currentTrips, trip])} />} />
           <Route path="/trips/:tripId" element={<TripPage trips={trips} isLoading={isLoadingTrips} loadError={tripsError} onRetry={refreshTrips} onDelete={handleDeleteTrip} onUpdate={handleUpdateTrip} onUpdateDetails={handleUpdateDetails} />} />
           <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/budgets" element={<BudgetsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/invitations" element={<>

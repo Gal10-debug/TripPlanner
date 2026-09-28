@@ -89,11 +89,11 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Create-trip submissions now show save failures, retain entered values, and disable repeated submits while saving.
    - 99 frontend tests, build, and lint pass. A live country-filtered lookup passed. Visual browser verification remains pending; no backend/schema changes.
 
-Add a Budget navigation entry when its cross-trip page is functional.
+Cross-trip budgets and navigation are implemented on `feature/production-system`.
 
 ## Deployment requirement
 
-The frontend host must serve `client/dist/index.html` for non-file frontend paths such as `/trips` and `/invitations`, while preserving `/api/*` routing. Vite provides this fallback during development. The repository currently has no production frontend hosting configuration; configure the rewrite on the chosen host before deploying clean URLs.
+The frontend host must serve `client/dist/index.html` for non-file frontend paths such as `/trips` and `/invitations`, while preserving `/api/*` routing. Vite provides this fallback during development. The production Docker image now serves the SPA through ASP.NET fallback routing while preserving unknown `/api/*` responses as 404. See `deploy/README.md` for hosting and launch acceptance.
 
 ## Verification
 
@@ -133,3 +133,15 @@ Run from the repository root: `dotnet test TripPlanner.slnx`.
    shared durable job queue, distributed rate limits, shared Data Protection keys,
    leader/claim coordination, idempotency, observability, and migration/backups.
    Keep the current SQLite deployment at one API instance until these are tested.
+
+## Production system — `feature/production-system`
+
+- Docker/Caddy deployment with HTTPS, explicit CORS/proxy trust, persistent SQLite and Data Protection keys.
+- PR/main CI: client tests/build/lint, .NET tests, npm/NuGet audits, backup restore test, desktop/mobile Playwright suite; main builds publish GHCR images after checks. Protected manual production deployment uses immutable digests and a pre-deploy backup.
+- Liveness/readiness and private operational status, worker heartbeats, queue/SMTP/backup watchdog with configurable webhook. External uptime checks and off-host storage require operator setup.
+- Cross-trip budgets grouped by currency, owned/shared trip navigation, and English/Hebrew UI.
+- Password-confirmed account export/deletion with account isolation and session invalidation.
+- Online SQLite snapshots, checksums, retention and restore tooling; deployment and recovery runbook in `deploy/README.md`.
+- Local validation: 116 frontend tests, 70 server tests, frontend build/lint, backup/restore test, NuGet audit, YAML syntax and published-server HTTP route/asset checks pass. Ten Playwright cases are discovered; no browser is connected, so browser execution remains pending.
+- Remaining launch gates: real hosting/domain/secrets, hosted CI/browser and Docker execution, a production-like restore drill, tested alert delivery and SMTP inbox acceptance. Nothing has been deployed by this branch.
+- Google Calendar, closed-app Web Push and multiple instances stay deferred.

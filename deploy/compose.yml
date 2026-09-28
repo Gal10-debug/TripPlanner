@@ -1,0 +1,73 @@
+name: tripplanner
+services:
+  app:
+    image: ${TRIPPLANNER_IMAGE:?Set an immutable image digest}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    env_file: .env
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__TripPlanner: Data Source=/data/tripplanner.db
+      Hosting__PublicOrigin: https://${DOMAIN:?Set DOMAIN}
+      Hosting__DataProtectionPath: /data/keys
+      Hosting__TrustedProxies__0: 172.30.42.10
+      AllowedHosts: ${DOMAIN};app;localhost
+    volumes:
+      - ./data:/data
+    networks:
+      default:
+        ipv4_address: 172.30.42.20
+    # The API has no host port. Only Caddy can expose it publicly.
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [app]
+    networks:
+      default:
+        ipv4_address: 172.30.42.10
+  backup:
+    image: python:3.13-slim
+    restart: unless-stopped
+    user: '1654:1654'
+    command: ['python', '/tools/backup_loop.py']
+    environment:
+      BACKUP_INTERVAL_SECONDS: '21600'
+      BACKUP_RETENTION_DAYS: '14'
+    volumes:
+      - ./data:/data:ro
+      - ./backups:/backups
+      - ../scripts:/tools:ro
+  monitor:
+    image: python:3.13-slim
+    restart: unless-stopped
+    user: '1654:1654'
+    command: ['python', '/tools/monitor.py']
+    env_file: .env
+    environment:
+      MONITOR_URL: http://app:8080/ops/status
+    volumes:
+      - ../scripts:/tools:ro
+      - ./backups:/backups:ro
+    depends_on: [app]
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.30.42.0/24
+volumes:
+  caddy_data:
+  caddy_config:

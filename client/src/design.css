@@ -178,3 +178,15 @@ a, button, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .dashboard-intro h1 { letter-spacing: -1.4px; font-size: 36px; }
   .dashboard-hero .dashboard-intro h1 { font-size: 36px; }
 }
+
+.budget-overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+.budget-overview-grid dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.budget-overview-grid dd { margin: 0; text-align: end; font-weight: 700; }
+.budget-overview-trip { display: flex; justify-content: space-between; gap: 16px; padding: 24px; }
+.budget-overview-trip a { color: var(--green); font-size: 20px; }
+.account-privacy { margin-top: 28px; display: grid; gap: 18px; }
+.account-privacy p { font-size: 13px; line-height: 1.7; margin: 0; }
+.account-privacy hr { width: 100%; border: 0; border-top: 1px solid var(--line); }
+.privacy-delete { color: #fff; background: #953f32; }
+@media(max-width:880px) { .app-navigation { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media(max-width:560px) { .budget-overview-trip { flex-direction: column; } .app-navigation a { font-size: 10px; } }

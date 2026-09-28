@@ -39,8 +39,8 @@ Recovery endpoints (both hyphenated and Identity aliases) share a limit of 10
 requests per remote IP per 15 minutes, plus 100 requests per minute across the
 instance. HTTP 429 includes `Retry-After` and a generic message. Forwarded IP
 headers are not trusted automatically: when deploying behind a reverse proxy,
-configure ASP.NET forwarded headers with explicit trusted proxies before rate
-limiting, or clients will share the proxy's limit. Edge-level limits are still
+set `Hosting__TrustedProxies__0` to the actual proxy IP. The production setup
+applies trusted forwarded headers before rate limiting. See [deployment](../deploy/README.md). Edge-level limits are still
 needed for distributed denial-of-service protection. These in-memory limits are
 per process; the deployment remains a single API instance.
 
@@ -173,3 +173,9 @@ The restore and vulnerability audit on 2026-09-28 reported no known vulnerable
 packages in either project. Re-run before releases; an audit is a point-in-time
 check, not a guarantee against unknown vulnerabilities. Native SQLite integration
 is tested on the current host; run the same tests on the deployment OS.
+
+## Production hosting and operations
+
+Non-Development startup requires `Hosting__PublicOrigin` (HTTPS) and `Hosting__DataProtectionPath`. The production image serves the built SPA and API together. Unknown API routes stay 404. See the [runbook](../deploy/README.md) for trusted proxy configuration, health endpoints, private aggregate monitoring, backups, CI/CD, and SMTP acceptance checks.
+
+`GET /api/budgets` includes owned and currently shared trips, with totals grouped by currency. `POST /api/account/export` and `DELETE /api/account` require the current password; deletion additionally requires `confirmation: "DELETE"`. Export excludes authentication secrets and other owners' full trip data. Deletion is transactional, removes owned trips and associated records, preserves other owners' trips, and invalidates remaining authenticated sessions. Historical backups expire through the documented retention policy.

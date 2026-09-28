@@ -1,0 +1,10 @@
+{
+    email {$ACME_EMAIL}
+}
+{$DOMAIN} {
+    encode zstd gzip
+    # Operational details stay private, even if a monitoring token is compromised.
+    @internal path /ops/*
+    respond @internal 404
+    reverse_proxy app:8080
+}
