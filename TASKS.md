@@ -20,7 +20,7 @@ Work incrementally on local feature branches. Do not push or merge without a req
    - Production token privacy, one-hour expiry, configuration checks, and generic account responses.
    - 28 frontend tests, frontend build/lint, and 10 server integration tests pass.
    - Deployment still needs SMTP credentials and a verified sender; see `server/README.md`. Live email delivery has not been verified.
-   - Existing NuGet audit warnings remain for Microsoft.OpenApi 2.0.0 and SQLitePCLRaw.lib.e_sqlite3 2.1.11; dependency remediation is separate from these fixes.
+   - The originally reported OpenAPI and SQLite NuGet advisories were remediated on `fix/security-password-reset`; see the security update below.
 4. Monthly calendar — implemented on `feature/monthly-calendar` (based on step 3).
    - `/calendar` navigation on desktop and mobile; month/year navigation, month picker, Today, and a selected-day agenda.
    - Owned/shared trip spans and itinerary activities use one access-controlled monthly endpoint.
@@ -99,3 +99,37 @@ The frontend host must serve `client/dist/index.html` for non-file frontend path
 
 Run from `client`: `npm test`, `npm run build`, `npm run lint`.
 Run from the repository root: `dotnet test TripPlanner.slnx`.
+
+
+## Security update — `fix/security-password-reset`
+
+- Pin Microsoft.OpenApi 2.7.5 and SQLitePCLRaw.bundle_e_sqlite3 3.0.5; the latter
+  removes SQLitePCLRaw.lib.e_sqlite3 2.1.11 and brings in native SQLite 3.53.4.
+- Recovery routes share a 10-request/IP/15-minute limit and a 100-request/minute
+  instance limit, with generic 429 responses and Retry-After.
+- Durable five-minute address cooldown and atomic queue deduplication, including
+  the Identity forgotPassword alias. Public responses do not expose account existence.
+- Encrypted recovery payloads, five bounded delivery attempts, database leases,
+  terminal status tracking, expiry, and 24-hour retention. Queue persistence failures
+  return 503; transient SMTP failures retry without requiring another request.
+- AddPasswordResetQueue is an additive startup migration. Preserve the SQLite
+  database and Data Protection key ring across deployments.
+- Validation: 65 server and 113 frontend tests pass, along with frontend build/lint;
+  the NuGet audit reports no vulnerable packages in either project (2026-09-28).
+  Tests use recording senders; real SMTP delivery remains a deployment check.
+
+## Follow-up integration branches
+
+1. Google Calendar sync (`feature/google-calendar-sync`): start with explicit opt-in
+   one-way export to a dedicated TripPlanner calendar. Configure a Google OAuth
+   client and deployment callback URL, store refresh tokens encrypted, support
+   disconnect/revocation, and persist event mappings so edits/deletes and retries
+   cannot duplicate events. Confirm one-way versus two-way scope before implementation.
+2. Closed-app Web Push (`feature/web-push`): configure VAPID keys, persist per-device
+   subscriptions, obtain permission explicitly, deliver through a durable queue,
+   and remove expired subscriptions. Verify delivery and click-through on supported
+   desktop/mobile browsers without an open TripPlanner tab.
+3. Multi-instance deployment (`infra/multi-instance`): evaluate PostgreSQL and a
+   shared durable job queue, distributed rate limits, shared Data Protection keys,
+   leader/claim coordination, idempotency, observability, and migration/backups.
+   Keep the current SQLite deployment at one API instance until these are tested.

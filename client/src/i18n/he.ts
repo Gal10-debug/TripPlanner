@@ -1,4 +1,5 @@
 export const hebrew: Record<string, string> = {
+    "Too many password reset requests. Please try again later.": "נשלחו יותר מדי בקשות לאיפוס סיסמה. נסו שוב מאוחר יותר.",
     "Pause background motion": "השהיית תנועת הרקע",
     "Resume background motion": "המשך תנועת הרקע",
     "Pause scenery": "השהיית הנוף",
