@@ -55,11 +55,12 @@ test('sharing works across independent browser sessions', async ({ page, browser
 test('Hebrew preferences persist and mobile navigation fits the viewport', async ({ page }) => {
     await signup(page);
     await page.goto('/settings');
-    await page.getByLabel('Language', { exact: true }).selectOption('he');
+    await page.getByRole('combobox', { name: 'Language', exact: true }).selectOption('he');
     await page.getByRole('button', { name: 'Save settings', exact: true }).click();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+    await expect(page.getByRole('combobox', { name: 'שפה', exact: true })).toHaveValue('he');
     await expect(page.getByRole('navigation')).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
     expect(overflow).toBe(false);

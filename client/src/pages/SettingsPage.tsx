@@ -51,7 +51,7 @@ function SettingsForm({ account, options }: { account: AccountSettings; options:
         <fieldset disabled={isSaving}><legend>{t('Profile and preferences')}</legend>
             <label>{t('Display name')}<input autoComplete="nickname" maxLength={100} value={draft.displayName} onChange={event => change('displayName', event.target.value)} /></label>
             <label>{t('Email address')}<input type="email" dir="ltr" value={account.email} readOnly /></label>
-            <label>{t('Language')}<select value={draft.language} onChange={event => change('language', event.target.value as 'en' | 'he')}><option value="en">English</option><option value="he">עברית</option></select></label>
+            <label><span id="settings-language-label">{t('Language')}</span><select aria-labelledby="settings-language-label" value={draft.language} onChange={event => change('language', event.target.value as 'en' | 'he')}><option value="en">English</option><option value="he">עברית</option></select></label>
             <label>{t('Time zone')}<select dir="ltr" value={draft.timeZone} onChange={event => change('timeZone', event.target.value)}>{options.timeZones.map(zone => <option key={zone} value={zone}>{zone.replaceAll('_', ' ')}</option>)}</select></label>
             <p className="settings-hint">{t('Your time zone determines today, trip status, and reminder dates. Itinerary times stay as entered.')}</p>
             <label>{t('Default currency')}<select dir="ltr" value={draft.defaultCurrency} onChange={event => change('defaultCurrency', event.target.value)}>{options.currencies.map(currency => <option key={currency}>{currency}</option>)}</select></label>
