@@ -14,7 +14,7 @@
     <!-- ASP.NET Core OpenApi 10 requires OpenAPI.NET 2.x; 3.x needs a coordinated framework upgrade. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.12">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
