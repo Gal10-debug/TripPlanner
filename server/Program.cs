@@ -7,6 +7,9 @@ using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddPasswordResetRateLimiting();
+builder.Services.AddScoped<PasswordResetQueue>();
+builder.Services.AddHostedService<PasswordResetWorker>();
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddDbContext<TripPlannerContext>(options =>
@@ -55,6 +58,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -71,7 +75,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
-app.MapGroup("/api/auth").MapIdentityApi<IdentityUser>();
+var identityEndpoints = app.MapGroup("/api/auth");
+identityEndpoints.AddEndpointFilter(async (context, next) =>
+{
+    // Keep the framework alias on the same durable delivery/cooldown path.
+    if (string.Equals(context.HttpContext.Request.Path.Value?.TrimEnd('/'), "/api/auth/forgotPassword", StringComparison.OrdinalIgnoreCase))
+        return Results.Redirect("/api/auth/forgot-password", preserveMethod: true);
+    return await next(context);
+});
+identityEndpoints.MapIdentityApi<IdentityUser>();
 app.MapPost("/api/auth/logout", async (SignInManager<IdentityUser> signInManager) =>
     {
         await signInManager.SignOutAsync();
@@ -84,13 +96,13 @@ app.MapGet("/api/auth/me", (HttpContext context) =>
 
 app.MapPost("/api/auth/forgot-password", async (
     ForgotPasswordRequest request,
-    UserManager<IdentityUser> userManager,
+    PasswordResetQueue queue,
     IHostEnvironment environment,
     IPasswordResetEmailSender emailSender,
     ILogger<Program> logger,
     CancellationToken cancellationToken) =>
 {
-    if (string.IsNullOrWhiteSpace(request.Email) || !new EmailAddressAttribute().IsValid(request.Email))
+    if (string.IsNullOrWhiteSpace(request.Email) || request.Email.Length > 320 || !new EmailAddressAttribute().IsValid(request.Email))
         return Results.BadRequest(new { detail = "Enter a valid email address." });
 
     // Check before looking up the account, so configuration failures don't reveal registered emails.
@@ -101,27 +113,16 @@ app.MapPost("/api/auth/forgot-password", async (
     }
 
     const string message = "If an account exists for that email, you will receive a reset code.";
-    var user = await userManager.FindByEmailAsync(request.Email.Trim());
-
-    if (user is null)
+    string? token;
+    try
     {
-        return Results.Ok(new { message, resetToken = (string?)null });
+        token = await queue.EnqueueAsync(request.Email, cancellationToken);
     }
-
-    var token = await userManager.GeneratePasswordResetTokenAsync(user);
-
-    if (emailSender.IsConfigured)
+    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+    catch (Exception exception)
     {
-        try
-        {
-            await emailSender.SendAsync(user.Email!, token, cancellationToken);
-        }
-        catch (Exception exception)
-        {
-            // Do not log tokens, recipient addresses, credentials, or SMTP response bodies.
-            logger.LogError("Password reset email delivery failed ({FailureType}).", exception.GetType().Name);
-            // Keep the response identical for known and unknown accounts.
-        }
+        logger.LogError("Password reset queue unavailable ({FailureType}).", exception.GetType().Name);
+        return Results.Problem(statusCode: 503, detail: "Password reset is temporarily unavailable. Please try again later.");
     }
 
     // Preserve the local development shortcut; never expose a token in production.

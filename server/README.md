@@ -4,8 +4,9 @@ Run from the repository root with `dotnet run --project server`.
 
 ## Password reset email
 
-The custom `/api/auth/forgot-password` endpoint now sends an email containing an
-ASP.NET Identity reset code. Users can paste it into the reset form immediately,
+The custom `/api/auth/forgot-password` endpoint durably queues an email containing
+an ASP.NET Identity reset code. HTTP 200 means the request was accepted or
+suppressed by the cooldown; it does not mean SMTP delivery completed. Users can paste it into the reset form immediately,
 or return later through **Forgot your password? → I already have a reset code**.
 Successful reset invalidates the code. Tokens expire after one hour.
 
@@ -29,16 +30,50 @@ need a different authentication adapter.
 
 In Production (and any non-Development environment), the endpoint never returns
 the token. Without valid SMTP settings it returns HTTP 503 for every account.
-A runtime delivery failure is logged by exception type only; the public response
-stays generic to avoid revealing registered accounts. Monitor the server's
-`Password reset email delivery failed` errors; failed sends are not queued or
-automatically retried. Users can request another code.
+Queue persistence failures also return HTTP 503. Registered and unknown addresses,
+and requests suppressed by cooldown, receive identical successful public responses.
+The Identity `/api/auth/forgotPassword` alias redirects with HTTP 307 to this same
+queue; it cannot bypass cooldown or use a separate email delivery path.
 
-Development retains the existing token-in-response shortcut, and also sends email
-if SMTP is configured. Use `ASPNETCORE_ENVIRONMENT=Production` in deployment.
-Persist and protect the ASP.NET Data Protection key ring in production, and share
-it between replicas, so reset codes remain valid across restarts and servers.
-The one-hour token lifetime also applies to other Identity data-protection tokens.
+Recovery endpoints (both hyphenated and Identity aliases) share a limit of 10
+requests per remote IP per 15 minutes, plus 100 requests per minute across the
+instance. HTTP 429 includes `Retry-After` and a generic message. Forwarded IP
+headers are not trusted automatically: when deploying behind a reverse proxy,
+configure ASP.NET forwarded headers with explicit trusted proxies before rate
+limiting, or clients will share the proxy's limit. Edge-level limits are still
+needed for distributed denial-of-service protection. These in-memory limits are
+per process; the deployment remains a single API instance.
+
+Each normalized email address has a durable five-minute cooldown, including unknown
+addresses. Concurrent requests share one database row, and pending work is not
+replaced by repeated requests. Addresses are keyed by SHA-256 of the Identity
+normalized email; this is an identifier, not encryption. The actual recipient,
+user identity, security stamp, and reset token are protected together with ASP.NET
+Data Protection. No plaintext reset tokens or addresses are stored in this queue.
+The worker runs every 15 seconds, processes up to 20 due jobs per pass, and uses a
+two-minute database lease with a 20-second SMTP timeout. It makes at most five
+attempts with delays of 1, 2, 4, and 8 minutes between failures. Attempt counters
+are saved before sending. Requests expire one hour after creation; tokens are not
+regenerated on retry. Password or account-email changes cancel pending deliveries.
+
+`PasswordResetDeliveries` tracks `pending`, `sent`, `failed`, `expired`, and
+`cancelled`, attempt counts, next-attempt time, SMTP acceptance time, and only the
+exception type on failure. Status is internal: there is no public endpoint that
+could expose account existence. Monitor status counts and the `Password reset
+delivery failed` / `Password reset queue check failed` logs. Investigate terminal
+failures; the user can request another code after cooldown. Protected payloads are
+erased when work reaches a terminal status; all queue records are pruned after
+24 hours. SMTP acceptance is not inbox delivery. A crash after SMTP accepts a
+message but before the status update can cause a duplicate; retries resend the
+same code and do not extend its lifetime.
+
+The additive `AddPasswordResetQueue` migration runs at startup. Persist the SQLite
+database **and the ASP.NET Data Protection key ring** across deployments: both
+pending email decryption and reset-token validation depend on these keys. Use
+`ASPNETCORE_ENVIRONMENT=Production` in deployment. Development retains the local
+token response for newly accepted requests and queues email when configured.
+`PasswordReset:DisableWorker` is intended for tests only. Keep the API running to
+process the queue; this change does not introduce a separate worker service.
 
 These changes implement delivery but do not configure a live provider. Verify a
 reset email reaches a controlled inbox after deployment settings are supplied.
@@ -51,7 +86,9 @@ From the repository root: `dotnet test TripPlanner.slnx`.
 Password-reset integration tests use temporary SQLite databases, ephemeral
 Data Protection keys, and a recording email sender. They cover the production
 request/reset/login flow, token reuse and expiry, weak passwords, unknown users,
-missing SMTP configuration, delivery failures, and the development shortcut.
+missing SMTP configuration, delivery failures/retries, concurrent requests,
+cooldowns, IP/global limits, alias routes, application restarts, persistence failures,
+terminal cleanup, and the development shortcut.
 
 Frontend regression checks: `npm --prefix client test`,
 `npm --prefix client run build`, and `npm --prefix client run lint`.
@@ -116,3 +153,23 @@ The hosted worker processes up to 50 queued emails per check. A durable two-minu
 SMTP delivery cannot guarantee exactly once: a process failure after SMTP acceptance but before recording success may result in a repeat after the lease expires. A failed SMTP disconnect after acceptance is not treated as delivery failure. A sent status means the SMTP server accepted the message, not that it reached the inbox.
 
 Tests replace both email interfaces with recording fakes and never send real email. Live SMTP delivery and native browser alerts remain unverified. This SQLite setup continues to assume one API instance for default-reminder generation.
+
+
+## Patched dependencies
+
+The server explicitly pins `Microsoft.OpenApi` 2.7.5 for
+[GHSA-v5pm-xwqc-g5wc](https://github.com/advisories/GHSA-v5pm-xwqc-g5wc), and
+`SQLitePCLRaw.bundle_e_sqlite3` 3.0.5, which replaces the vulnerable native
+`SQLitePCLRaw.lib.e_sqlite3` 2.1.11 dependency with `SQLite` 3.53.4 for
+[GHSA-2m69-gcr7-jv3q](https://github.com/advisories/GHSA-2m69-gcr7-jv3q).
+The framework packages currently select the older transitive versions without
+these overrides. Check both projects with:
+
+```sh
+dotnet list TripPlanner.slnx package --vulnerable --include-transitive
+```
+
+The restore and vulnerability audit on 2026-09-28 reported no known vulnerable
+packages in either project. Re-run before releases; an audit is a point-in-time
+check, not a guarantee against unknown vulnerabilities. Native SQLite integration
+is tested on the current host; run the same tests on the deployment OS.

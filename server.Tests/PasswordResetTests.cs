@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using server.Services;
+using server.Data;
+using server.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace server.Tests;
 
@@ -29,6 +32,8 @@ public class PasswordResetTests
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(JsonValueKind.Null, result.GetProperty("resetToken").ValueKind);
+        Assert.Empty(app.Sender.Messages); // Requests persist work; they do not wait for SMTP.
+        await app.DeliverPasswordResets();
         var sent = Assert.Single(app.Sender.Messages);
         Assert.Equal(Email, sent.Email);
         Assert.False(string.IsNullOrEmpty(sent.Token));
@@ -54,6 +59,7 @@ public class PasswordResetTests
         var unknown = await client.PostAsJsonAsync("/api/auth/forgot-password", new { email = "unknown@example.test" });
         Assert.Equal(known.StatusCode, unknown.StatusCode);
         Assert.Equal(await known.Content.ReadAsStringAsync(), await unknown.Content.ReadAsStringAsync());
+        await app.DeliverPasswordResets();
         Assert.Single(app.Sender.Messages);
     }
 
@@ -81,6 +87,7 @@ public class PasswordResetTests
         await Register(client);
         var known = await client.PostAsJsonAsync("/api/auth/forgot-password", new { email = Email });
         var unknown = await client.PostAsJsonAsync("/api/auth/forgot-password", new { email = "unknown@example.test" });
+        await app.DeliverPasswordResets();
         Assert.Equal(HttpStatusCode.OK, known.StatusCode);
         Assert.Equal(await known.Content.ReadAsStringAsync(), await unknown.Content.ReadAsStringAsync());
         Assert.Empty(app.Sender.Messages);
@@ -95,6 +102,7 @@ public class PasswordResetTests
         var invalid = await client.PostAsJsonAsync("/api/auth/reset-password", new { email = Email, resetToken = "invalid", newPassword = NewPassword });
         Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
         await client.PostAsJsonAsync("/api/auth/forgot-password", new { email = Email });
+        await app.DeliverPasswordResets();
         var token = Assert.Single(app.Sender.Messages).Token;
         var weak = await client.PostAsJsonAsync("/api/auth/reset-password", new { email = Email, resetToken = token, newPassword = "short" });
         Assert.Equal(HttpStatusCode.BadRequest, weak.StatusCode);
@@ -109,6 +117,7 @@ public class PasswordResetTests
         using var client = app.CreateClient();
         await Register(client);
         await client.PostAsJsonAsync("/api/auth/forgot-password", new { email = Email });
+        await app.DeliverPasswordResets();
         var token = Assert.Single(app.Sender.Messages).Token;
         var reset = await client.PostAsJsonAsync("/api/auth/reset-password", new { email = Email, resetToken = token, newPassword = NewPassword });
         Assert.Equal(HttpStatusCode.BadRequest, reset.StatusCode);
@@ -148,10 +157,22 @@ public class PasswordResetTests
     }
 }
 
-internal sealed class ResetApplication(string environment = "Production", bool expireTokens = false) : WebApplicationFactory<Program>
+internal sealed class ResetApplication(string environment = "Production", bool expireTokens = false, string? sharedDatabasePath = null, DirectoryInfo? keyDirectory = null) : WebApplicationFactory<Program>
 {
-    private readonly string databasePath = Path.Combine(Path.GetTempPath(), $"wanderly-reset-{Guid.NewGuid():N}.db");
+    private readonly string databasePath = sharedDatabasePath ?? Path.Combine(Path.GetTempPath(), $"wanderly-reset-{Guid.NewGuid():N}.db");
+    public ResetClock Clock { get; } = new();
     public RecordingEmailSender Sender { get; } = new();
+    public async Task DeliverPasswordResets()
+    {
+        using var scope = Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<PasswordResetQueue>().DeliverAsync();
+    }
+    public async Task<List<PasswordResetDelivery>> ResetJobs()
+    {
+        using var scope = Services.CreateScope();
+        return await scope.ServiceProvider.GetRequiredService<TripPlannerContext>().PasswordResetDeliveries.AsNoTracking().ToListAsync();
+    }
+
     public RecordingReminderSender ReminderSender { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -161,15 +182,19 @@ internal sealed class ResetApplication(string environment = "Production", bool e
         {
             ["ConnectionStrings:TripPlanner"] = $"Data Source={databasePath};Pooling=False",
             ["Logging:LogLevel:Default"] = "Error",
-            ["Notifications:DisableWorker"] = "true"
+            ["Notifications:DisableWorker"] = "true",
+            ["PasswordReset:DisableWorker"] = "true"
         }));
         builder.ConfigureTestServices(services =>
         {
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Clock);
             services.RemoveAll<IReminderEmailSender>();
             services.AddSingleton<IReminderEmailSender>(ReminderSender);
             services.RemoveAll<IPasswordResetEmailSender>();
             services.AddSingleton<IPasswordResetEmailSender>(Sender);
-            services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            if (keyDirectory is null) services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            else services.AddDataProtection().PersistKeysToFileSystem(keyDirectory).SetApplicationName("TripPlanner.Tests");
             if (expireTokens) services.PostConfigure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromSeconds(-1));
         });
     }
@@ -177,7 +202,7 @@ internal sealed class ResetApplication(string environment = "Production", bool e
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing)
+        if (disposing && sharedDatabasePath is null)
         {
             foreach (var suffix in new[] { "", "-wal", "-shm" }) File.Delete(databasePath + suffix);
         }
@@ -208,4 +233,11 @@ internal sealed class RecordingReminderSender : IReminderEmailSender
         Messages.Add(reminder);
         return Task.CompletedTask;
     }
+}
+
+internal sealed class ResetClock : TimeProvider
+{
+    private DateTimeOffset now = DateTimeOffset.UtcNow;
+    public override DateTimeOffset GetUtcNow() => now;
+    public void Advance(TimeSpan duration) => now += duration;
 }
