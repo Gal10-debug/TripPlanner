@@ -10,3 +10,6 @@
 **/__pycache__
 deploy/data
 deploy/backups
+
+# .NET test reports
+**/TestResults

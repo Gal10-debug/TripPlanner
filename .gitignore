@@ -24,3 +24,6 @@
 deploy/data/
 deploy/backups/
 **/__pycache__/
+
+# .NET test reports
+**/TestResults/
