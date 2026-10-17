@@ -35,7 +35,7 @@ jobs:
       - run: dotnet test TripPlanner.slnx --no-restore -m:1 --logger trx --results-directory TestResults
       - run: python scripts/audit_nuget.py
       - run: python -m unittest discover -s scripts -p 'test_*.py'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: server-test-results
@@ -56,7 +56,7 @@ jobs:
       - run: npm ci --prefix client
       - run: npx --prefix client playwright install --with-deps chromium
       - run: npm --prefix client run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: browser-results
