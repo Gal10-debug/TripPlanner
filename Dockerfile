@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim AS client
+FROM node:26-bookworm-slim AS client
 WORKDIR /src/client
 COPY client/package*.json ./
 RUN npm ci
