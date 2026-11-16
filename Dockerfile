@@ -13,7 +13,7 @@ COPY server/ server/
 RUN dotnet publish server/server.csproj -c Release --no-restore -o /out /p:UseAppHost=false
 COPY --from=client /src/client/dist /out/wwwroot
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:11.0
 WORKDIR /app
 RUN mkdir -p /data/keys && chown -R 1654:1654 /data
 COPY --from=server /out .
