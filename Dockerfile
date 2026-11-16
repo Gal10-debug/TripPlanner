@@ -5,7 +5,7 @@ RUN npm ci
 COPY client/ ./
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS server
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS server
 WORKDIR /src
 COPY server/server.csproj server/
 RUN dotnet restore server/server.csproj
